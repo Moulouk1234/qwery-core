@@ -13,6 +13,12 @@ import { testConnection } from '../../tools/test-connection';
 import { gsheetToDuckdb } from '../../tools/gsheet-to-duckdb';
 import { extractSchema } from '../../tools/extract-schema';
 import { runQuery } from '../../tools/run-query';
+import {
+  registerSheetView,
+  loadViewRegistry,
+  updateViewUsage,
+  type RegistryContext,
+} from '../../tools/view-registry';
 import { READ_DATA_AGENT_PROMPT } from '../prompts/read-data-agent.prompt';
 
 // Support both import.meta.env (Vite/browser) and process.env (Node.js)
@@ -82,33 +88,76 @@ export const readDataAgent = async (
           console.debug(
             `[ReadDataAgent:${conversationId}] Creating DuckDB view from sheet: ${sharedLink}`,
           );
+
+          // Register the sheet view to get a unique view name
+          const context: RegistryContext = {
+            conversationDir: fileDir,
+          };
+          const { record, isNew } = await registerSheetView(
+            context,
+            sharedLink,
+          );
+
           const message = await gsheetToDuckdb({
             dbPath,
             sharedLink,
+            viewName: record.viewName,
           });
+
           return {
-            content: message,
+            content: `${message}${isNew ? '' : ' (view already existed, updated)'}`,
+            viewName: record.viewName,
+            sharedLink: record.sharedLink,
           };
         },
       }),
-      getSchema: tool({
-        description: 'Get the schema of the Google Sheet view',
+      listViews: tool({
+        description:
+          'List all available views (sheets) in the database. Use this to see what data sources are available when the user asks about multiple sheets or when you need to know which view to query.',
         inputSchema: z.object({}),
         execute: async () => {
           if (!WORKSPACE) {
             throw new Error('WORKSPACE environment variable is not set');
           }
           const { join } = await import('node:path');
+          const fileDir = join(WORKSPACE, conversationId);
+          const context: RegistryContext = {
+            conversationDir: fileDir,
+          };
+          const registry = await loadViewRegistry(context);
+          return {
+            views: registry.map((record) => ({
+              viewName: record.viewName,
+              sharedLink: record.sharedLink,
+              sourceId: record.sourceId,
+              createdAt: record.createdAt,
+              lastUsedAt: record.lastUsedAt,
+            })),
+          };
+        },
+      }),
+      getSchema: tool({
+        description:
+          'Get the schema of one or all Google Sheet views. If viewName is provided, returns schema for that specific view. If not provided, returns schemas for all available views. Use this to understand the data structure before writing queries.',
+        inputSchema: z.object({
+          viewName: z.string().optional(),
+        }),
+        execute: async ({ viewName }) => {
+          if (!WORKSPACE) {
+            throw new Error('WORKSPACE environment variable is not set');
+          }
+          const { join } = await import('node:path');
           const dbPath = join(WORKSPACE, conversationId, 'database.db');
 
-          const schema = await extractSchema({ dbPath });
+          const schema = await extractSchema({ dbPath, viewName });
           return {
             schema: schema,
           };
         },
       }),
       runQuery: tool({
-        description: 'Run a SQL query against the Google Sheet view',
+        description:
+          'Run a SQL query against the Google Sheet views. You can query a single view by name, or join multiple views together. Use listViews first to see available view names. When querying, reference views by their exact viewName from the registry.',
         inputSchema: z.object({
           query: z.string(),
         }),
@@ -123,6 +172,20 @@ export const readDataAgent = async (
             dbPath,
             query,
           });
+
+          // Try to extract view names from the query to update usage
+          const fileDirPath = join(WORKSPACE, conversationId);
+          const context: RegistryContext = {
+            conversationDir: fileDirPath,
+          };
+          const registry = await loadViewRegistry(context);
+          const viewNamesInQuery = registry
+            .map((r) => r.viewName)
+            .filter((vn) => query.includes(vn));
+          for (const viewName of viewNamesInQuery) {
+            await updateViewUsage(context, viewName);
+          }
+
           return {
             result: result,
           };

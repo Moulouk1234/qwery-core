@@ -13,8 +13,48 @@ export const extractSchema = async (
   const conn = await instance.connect();
 
   try {
-    // Get schema information using DESCRIBE on the view
-    const viewName = (opts.viewName || 'my_sheet').replace(/"/g, '""');
+    // If no viewName specified, get all views
+    if (!opts.viewName) {
+      const viewsReader = await conn.runAndReadAll(`
+        SELECT view_name 
+        FROM information_schema.views 
+        WHERE view_schema = 'main'
+      `);
+      await viewsReader.readAll();
+      const views = viewsReader.getRowObjectsJS() as Array<{
+        view_name: string;
+      }>;
+
+      const tables: Table[] = [];
+      for (const view of views) {
+        const viewName = view.view_name.replace(/"/g, '""');
+        const schemaReader = await conn.runAndReadAll(`DESCRIBE "${viewName}"`);
+        await schemaReader.readAll();
+        const schemaRows = schemaReader.getRowObjectsJS() as Array<{
+          column_name: string;
+          column_type: string;
+        }>;
+
+        const columns: Column[] = schemaRows.map((row) => ({
+          columnName: row.column_name,
+          columnType: row.column_type,
+        }));
+
+        tables.push({
+          tableName: view.view_name,
+          columns,
+        });
+      }
+
+      return {
+        databaseName: 'google_sheet',
+        schemaName: 'google_sheet',
+        tables,
+      };
+    }
+
+    // Get schema information using DESCRIBE on the specific view
+    const viewName = opts.viewName.replace(/"/g, '""');
     const schemaReader = await conn.runAndReadAll(`DESCRIBE "${viewName}"`);
     await schemaReader.readAll();
     const schemaRows = schemaReader.getRowObjectsJS() as Array<{
@@ -29,7 +69,7 @@ export const extractSchema = async (
     }));
 
     const table: Table = {
-      tableName: opts.viewName || 'my_sheet',
+      tableName: opts.viewName,
       columns,
     };
 

@@ -18,6 +18,7 @@ export class InteractiveRepl {
   private isProcessing = false;
   private agent: FactoryAgent | null = null;
   private conversationId: string | null = null;
+  private isReadDataAgentSession = false; // Track if we're in a Google Sheets session
 
   constructor(private readonly container: CliContainer) {
     this.context = new InteractiveContext(container);
@@ -155,9 +156,16 @@ export class InteractiveRepl {
     try {
       // Check if this is a Google Sheet query (contains google.com/spreadsheets)
       const isGoogleSheetQuery = /google\.com\/spreadsheets/.test(query);
+      
+      // Also check if query is about sheets/views (likely Google Sheets context)
+      // OR if we're already in a readDataAgent session
+      const isSheetRelatedQuery = 
+        /(list.*views?|join.*sheets?|sheet|view|google.*sheet)/i.test(query) ||
+        this.isReadDataAgentSession;
 
-      if (isGoogleSheetQuery) {
-        // For Google Sheets, use FactoryAgent directly (no datasource needed)
+      if (isGoogleSheetQuery || isSheetRelatedQuery) {
+        // For Google Sheets, use readDataAgent directly (no datasource needed)
+        this.isReadDataAgentSession = true; // Mark session as Google Sheets
         await this.handleGoogleSheetQuery(query);
         return;
       }
@@ -239,7 +247,114 @@ export class InteractiveRepl {
     console.log('\n' + colored('🌐 Google Sheet Query Detected', colors.brand));
     console.log(colored('─'.repeat(60), colors.gray));
 
-    await this.processAgentQuery(query);
+    // Use readDataAgent directly for Google Sheets (faster, real-time streaming)
+    await this.processReadDataAgentQuery(query);
+  }
+
+  private async processReadDataAgentQuery(query: string): Promise<void> {
+    try {
+      // Import using file path since it's not exported from package index
+      const readDataAgentModule = await import(
+        '../../../../packages/agent-factory-sdk/src/agents/actors/read-data-agent.actor.js'
+      );
+      const { readDataAgent } = readDataAgentModule;
+      const { nanoid } = await import('nanoid');
+      const { validateUIMessages, convertToModelMessages } = await import('ai');
+
+      // Use a persistent conversation ID for follow-up questions
+      if (!this.conversationId || !this.conversationId.includes('read-data')) {
+        this.conversationId = `cli-read-data-${nanoid()}`;
+      }
+      this.isReadDataAgentSession = true; // Mark as Google Sheets session
+
+      const messages = [
+        {
+          id: nanoid(),
+          role: 'user' as const,
+          parts: [{ type: 'text' as const, text: query }],
+        },
+      ];
+
+      // Validate messages
+      await validateUIMessages({ messages });
+
+      console.log('\n' + colored('💬 Processing...', colors.brand) + '\n');
+
+      // Get the stream from readDataAgent (returns StreamTextResult)
+      const streamResult = await readDataAgent(this.conversationId, messages);
+      
+      // Iterate over the stream directly using AI SDK's stream methods
+      let fullText = '';
+      
+      try {
+        // Stream text chunks in real-time
+        for await (const chunk of streamResult.textStream) {
+          process.stdout.write(chunk);
+          fullText += chunk;
+        }
+        
+        // Handle tool calls if they exist (they're promises that resolve to arrays)
+        if (streamResult.toolCalls) {
+          try {
+            const toolCalls = await streamResult.toolCalls;
+            if (Array.isArray(toolCalls) && toolCalls.length > 0) {
+              for (const toolCall of toolCalls) {
+                console.log(
+                  '\n' +
+                    colored(`🔧 [Tool: ${toolCall.toolName}]`, colors.brand),
+                );
+                // Tool call args are in the toolCall object but type-safe access varies
+                const args = 'args' in toolCall ? toolCall.args : undefined;
+                if (args) {
+                  console.log(
+                    colored(`   Args: ${JSON.stringify(args)}`, colors.dim),
+                  );
+                }
+              }
+            }
+          } catch {
+            // Tool calls might not be available, ignore
+          }
+        }
+        
+        // Handle tool results if they exist (they're promises that resolve to arrays)
+        if (streamResult.toolResults) {
+          try {
+            const toolResults = await streamResult.toolResults;
+            if (Array.isArray(toolResults) && toolResults.length > 0) {
+              for (const toolResult of toolResults) {
+                console.log(
+                  '\n' +
+                    colored(`✅ [Tool Result: ${toolResult.toolName}]`, colors.green),
+                );
+              }
+            }
+          } catch {
+            // Tool results might not be available, ignore
+          }
+        }
+      } catch (error) {
+        console.error(
+          '\n' +
+            colored('❌ Error reading stream:', colors.red) +
+            ' ' +
+            (error instanceof Error ? error.message : String(error)),
+        );
+        throw error;
+      }
+
+      console.log('\n' + colored('✓ Response complete', colors.green) + '\n');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.log(
+        '\n' +
+          colored('❌ Error:', colors.red) +
+          ' ' +
+          colored(message, colors.white) +
+          '\n',
+      );
+      throw error;
+    }
   }
 
   private async processAgentQuery(query: string): Promise<void> {
@@ -248,6 +363,25 @@ export class InteractiveRepl {
       if (!this.agent || !this.conversationId) {
         this.conversationId = `cli-agent-${nanoid()}`;
         const repositories = this.container.getRepositories();
+        
+        // Create the conversation before creating the FactoryAgent
+        // (FactoryAgent needs the conversation to exist when persisting messages)
+        const { v4: uuidv4 } = await import('uuid');
+        const conversationId = uuidv4();
+        const now = new Date();
+        await repositories.conversation.create({
+          id: conversationId,
+          slug: this.conversationId,
+          title: 'CLI Conversation',
+          projectId: uuidv4(), // Use dummy project ID for CLI
+          taskId: uuidv4(), // Use dummy task ID for CLI
+          datasources: [],
+          createdAt: now,
+          updatedAt: now,
+          createdBy: 'cli',
+          updatedBy: 'cli',
+        });
+        
         this.agent = new FactoryAgent({
           conversationSlug: this.conversationId,
           repositories,
