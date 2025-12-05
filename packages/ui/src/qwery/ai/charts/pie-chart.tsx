@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import * as React from 'react';
 import { PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import {
@@ -37,7 +38,7 @@ export function PieChart({ chartConfig }: PieChartProps) {
   }
 
   // Get colors (chart generation now uses direct hex colors)
-  const chartColors = React.useMemo(
+  const chartColors = useMemo(
     () => getColors(colors),
     [colors],
   );
@@ -45,7 +46,7 @@ export function PieChart({ chartConfig }: PieChartProps) {
   // Create chart config for ChartContainer
   // ChartContainer uses this config to generate CSS variables (--color-${key})
   // which are used by ChartTooltipContent for consistent theming
-  const chartConfigForContainer = React.useMemo(() => {
+  const chartConfigForContainer = useMemo(() => {
     const configObj: Record<string, { label?: string; color?: string }> = {};
     if (valueKey) {
       configObj[valueKey] = {

@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../../shadcn/button';
 import { cn } from '../../lib/utils';
@@ -19,6 +19,93 @@ export interface DataGridProps {
 }
 
 /**
+ * Formats a date value for display
+ */
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }) + ' ' + date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/**
+ * Checks if a string is an ISO date string
+ */
+function isISOString(value: string): boolean {
+  // Simple check for ISO 8601 format: YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss
+  const isoRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:\d{2})?)?$/;
+  return isoRegex.test(value);
+}
+
+/**
+ * Formats a cell value for display, handling dates, nulls, and other types
+ */
+function formatCellValue(value: unknown, columnName?: string): string {
+  if (value === null || value === undefined) {
+    return 'null';
+  }
+  if (value instanceof Date) {
+    return formatDate(value);
+  }
+  if (typeof value === 'string') {
+    if (isISOString(value) || (columnName && isDateTimeColumn(columnName))) {
+      try {
+        const date = new Date(value);
+        if (!isNaN(date.getTime())) {
+          return formatDate(date);
+        }
+      } catch {
+        // Not a valid date, return as-is
+      }
+    }
+    return value;
+  }
+  if (typeof value === 'number') {
+    return value.toString();
+  }
+  if (typeof value === 'boolean') {
+    return value ? 'true' : 'false';
+  }
+  if (typeof value === 'object') {
+    if ('toISOString' in value && typeof (value as { toISOString?: () => string }).toISOString === 'function') {
+      try {
+        const date = new Date((value as { toISOString: () => string }).toISOString());
+        if (!isNaN(date.getTime())) {
+          return formatDate(date);
+        }
+      } catch {
+        // Fall through to JSON.stringify
+      }
+    }
+    // For other objects, try JSON.stringify
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+  return String(value);
+}
+
+/**
+ * Checks if a column name suggests it's a date/time column
+ */
+function isDateTimeColumn(columnName: string): boolean {
+  const name = columnName.toLowerCase();
+  return (
+    name.includes('date') ||
+    name.includes('time') ||
+    name.includes('timestamp') ||
+    name.includes('created_at') ||
+    name.includes('updated_at')
+  );
+}
+
+/**
  * Minimal paginated data grid component for displaying SQL query results
  * Uses simple pagination to avoid browser overload with thousands of rows
  */
@@ -28,14 +115,14 @@ export function DataGrid({
   pageSize = 50,
   className,
 }: DataGridProps) {
-  const [currentPage, setCurrentPage] = React.useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(rows.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const currentRows = rows.slice(startIndex, endIndex);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Reset to page 1 when data changes
     setCurrentPage(1);
   }, [rows.length]);
@@ -72,20 +159,36 @@ export function DataGrid({
                   key={startIndex + rowIndex}
                   className="border-b hover:bg-muted/20 transition-colors"
                 >
-                  {columns.map((column) => (
-                    <td
-                      key={column}
-                      className="px-4 py-2 text-sm whitespace-nowrap"
-                    >
-                      {row[column] !== null && row[column] !== undefined
-                        ? String(row[column])
-                        : (
-                            <span className="text-muted-foreground italic">
-                              null
-                            </span>
-                          )}
-                    </td>
-                  ))}
+                  {columns.map((column) => {
+                    const value = row[column];
+                    const formattedValue = formatCellValue(value, column);
+                    const isNull = value === null || value === undefined;
+                    const isDateColumn = isDateTimeColumn(column);
+
+                    return (
+                      <td
+                        key={column}
+                        className={cn(
+                          'px-4 py-2 text-sm',
+                          isDateColumn ? 'whitespace-nowrap' : 'whitespace-normal',
+                          isNull && 'text-muted-foreground italic',
+                        )}
+                        title={isNull ? 'null' : formattedValue}
+                      >
+                        {isNull ? (
+                          <span className="text-muted-foreground italic">
+                            null
+                          </span>
+                        ) : (
+                          <div className={cn(
+                            isDateColumn ? 'whitespace-nowrap' : 'break-words',
+                          )}>
+                            {formattedValue}
+                          </div>
+                        )}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>

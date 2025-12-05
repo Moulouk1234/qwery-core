@@ -1,5 +1,6 @@
 'use client';
 
+import { useContext, useMemo } from 'react';
 import * as React from 'react';
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, Label } from 'recharts';
 import {
@@ -7,7 +8,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '../../../shadcn/chart';
-import { getColors } from './chart-utils';
+import { getColorsForBarLine } from './chart-utils';
 import { ChartContext } from './chart-wrapper';
 
 export interface BarChartConfig {
@@ -28,7 +29,7 @@ export interface BarChartProps {
 export function BarChart({ chartConfig }: BarChartProps) {
   const { data, config } = chartConfig;
   const { xKey = 'name', yKey = 'value', colors, labels } = config;
-  const { showAxisLabels } = React.useContext(ChartContext);
+  const { showAxisLabels } = useContext(ChartContext);
 
   if (!data || data.length === 0) {
     return (
@@ -39,15 +40,16 @@ export function BarChart({ chartConfig }: BarChartProps) {
   }
 
   // Get colors (chart generation now uses direct hex colors)
-  const chartColors = React.useMemo(
-    () => getColors(colors),
+  // Bar charts use colors directly from config without default fallback
+  const chartColors = useMemo(
+    () => getColorsForBarLine(colors),
     [colors],
   );
 
   // Create chart config for ChartContainer
   // ChartContainer uses this config to generate CSS variables (--color-${key})
   // which are used by ChartTooltipContent for consistent theming
-  const chartConfigForContainer = React.useMemo(() => {
+  const chartConfigForContainer = useMemo(() => {
     const configObj: Record<string, { label?: string; color?: string }> = {};
     if (yKey) {
       configObj[yKey] = {
@@ -103,9 +105,8 @@ export function BarChart({ chartConfig }: BarChartProps) {
           cursor={false}
           content={<ChartTooltipContent indicator="line" />}
         />
-        <Bar dataKey={yKey} fill={chartColors[0]} />
+        <Bar dataKey={yKey} fill={chartColors[0] || colors[0]} />
       </RechartsBarChart>
     </ChartContainer>
   );
 }
-

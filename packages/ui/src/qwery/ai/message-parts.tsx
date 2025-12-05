@@ -24,19 +24,19 @@ import {
   ToolInput,
   ToolOutput,
 } from '../../ai-elements/tool';
-import { ChartRenderer, type ChartConfig } from './chart-renderer';
-import { ChartTypeSelector, type ChartTypeSelection } from './chart-type-selector';
+import { ChartRenderer, type ChartConfig } from './charts/chart-renderer';
+import { ChartTypeSelector, type ChartTypeSelection } from './charts/chart-type-selector';
 import { SQLQueryVisualizer, type SQLQueryResult } from './sql-query-visualizer';
 import { SchemaVisualizer, type SchemaData } from './schema-visualizer';
 import {
   AvailableSheetsVisualizer,
   type AvailableSheetsData,
-} from './available-sheets-visualizer';
+} from './sheets/available-sheets-visualizer';
 import {
   ViewSheetVisualizer,
   type ViewSheetData,
-} from './view-sheet-visualizer';
-import { ViewSheetError } from './view-sheet-error';
+} from './sheets/view-sheet-visualizer';
+import { ViewSheetError } from './sheets/view-sheet-error';
 import {
   Source,
   Sources,

@@ -13,9 +13,17 @@ export const DEFAULT_CHART_COLORS = [
 ];
 
 /**
- * Gets colors array, using defaults if empty
+ * Gets colors array, using defaults if empty (only for pie charts)
+ * Bar and line charts should use colors directly from config without fallback
  */
 export function getColors(colors: string[]): string[] {
   return colors.length > 0 ? colors : DEFAULT_CHART_COLORS;
+}
+
+/**
+ * Gets colors for bar/line charts without default fallback
+ */
+export function getColorsForBarLine(colors: string[]): string[] {
+  return colors;
 }
 

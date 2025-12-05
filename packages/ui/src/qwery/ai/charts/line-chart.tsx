@@ -1,5 +1,6 @@
 'use client';
 
+import { useContext, useMemo } from 'react';
 import * as React from 'react';
 import {
     LineChart as RechartsLineChart,
@@ -13,7 +14,7 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from '../../../shadcn/chart';
-import { getColors } from './chart-utils';
+import { getColorsForBarLine } from './chart-utils';
 import { ChartContext } from './chart-wrapper';
 
 export interface LineChartConfig {
@@ -34,7 +35,7 @@ export interface LineChartProps {
 export function LineChart({ chartConfig }: LineChartProps) {
     const { data, config } = chartConfig;
     const { xKey = 'name', yKey = 'value', colors, labels } = config;
-    const { showAxisLabels } = React.useContext(ChartContext);
+    const { showAxisLabels } = useContext(ChartContext);
 
     if (!data || data.length === 0) {
         return (
@@ -44,16 +45,13 @@ export function LineChart({ chartConfig }: LineChartProps) {
         );
     }
 
-    // Get colors (chart generation now uses direct hex colors)
-    const chartColors = React.useMemo(
-        () => getColors(colors),
+    // Line charts use colors directly from config without default fallback
+    const chartColors = useMemo(
+        () => getColorsForBarLine(colors),
         [colors],
     );
 
-    // Create chart config for ChartContainer
-    // ChartContainer uses this config to generate CSS variables (--color-${key})
-    // which are used by ChartTooltipContent for consistent theming
-    const chartConfigForContainer = React.useMemo(() => {
+    const chartConfigForContainer = useMemo(() => {
         const configObj: Record<string, { label?: string; color?: string }> = {};
         if (yKey) {
             configObj[yKey] = {
@@ -68,9 +66,6 @@ export function LineChart({ chartConfig }: LineChartProps) {
     const xAxisLabel = labels?.[xKey] || labels?.name || xKey;
     const yAxisLabel = labels?.[yKey] || labels?.value || 'Value';
 
-    // Recharts color usage:
-    // - Line component uses `stroke` prop for line color
-    // - For single series, we use the first color from the config
     return (
         <ChartContainer config={chartConfigForContainer}>
             <RechartsLineChart data={data} key={`line-${showAxisLabels}`}>
@@ -112,7 +107,7 @@ export function LineChart({ chartConfig }: LineChartProps) {
                 <Line
                     type="monotone"
                     dataKey={yKey}
-                    stroke={chartColors[0]}
+                    stroke={chartColors[0] || colors[0]}
                     strokeWidth={2}
                     dot={false}
                 />

@@ -61,7 +61,40 @@ Available tools:
    - Shows the first N rows (default 50) with pagination info
    - If the user wants to see more rows or apply filters, use runQuery instead
 
-7. selectChartType: Select the best chart type (bar, line, or pie) for visualizing query results
+7. renameSheet: Renames a sheet/view to a more meaningful name. Use this when you want to give a sheet a better name based on its content, schema, or user context.
+   - Input:
+     * oldSheetName: string (required) - Current name of the sheet/view to rename
+     * newSheetName: string (required) - New meaningful name for the sheet (use lowercase, numbers, underscores only)
+   - Use this when:
+     * You created a sheet with a generic name and want to rename it based on discovered content
+     * The user asks to rename a sheet
+     * You discover the sheet content doesn't match the current name
+   - **Best Practice**: Try to name sheets correctly when creating them (createDbViewFromSheet) to avoid needing to rename later
+   - Returns: { oldSheetName: string, newSheetName: string, message: string }
+
+8. deleteSheet: Deletes one or more sheets/views from the database. This permanently removes the views and all their data. Supports batch deletion of multiple sheets.
+   - Input:
+     * sheetNames: string[] (required) - Array of sheet/view names to delete. Can delete one or more sheets at once. You MUST specify this. Use listAvailableSheets to see available sheets.
+   - **CRITICAL**: This action is PERMANENT and CANNOT be undone. Only use this when the user explicitly requests to delete sheet(s).
+   - **Deletion Scenarios**: Use this tool when the user explicitly requests to delete sheet(s) in any of these scenarios:
+     * Single sheet deletion: User mentions a specific sheet name to delete
+     * Multiple sheet deletion: User mentions multiple specific sheet names
+     * Pattern-based deletion: User asks to delete sheets matching a pattern (e.g., "delete all test sheets", "remove all sheets starting with 'data_'")
+     * Conditional deletion: User asks to delete sheets based on criteria (e.g., "delete duplicate views", "remove unused sheets", "clean up old sheets")
+     * Batch cleanup: User wants to clean up multiple sheets at once
+   - **Workflow for Deletion Requests**:
+     * If user mentions specific sheet name(s) → Extract the names and call deleteSheet directly
+     * If user mentions a pattern or criteria → FIRST call listAvailableSheets to see all sheets, then:
+       - Analyze the sheets to identify which ones match the user's criteria
+       - Determine which sheets to delete based on the user's request
+       - If ambiguous, you can ask the user for confirmation OR make a reasonable determination based on the criteria
+     * Call deleteSheet with the array of sheet names to delete
+     * Inform the user which sheets were deleted
+   - **WARNING**: Do NOT delete sheets unless the user explicitly requests it. This is a destructive operation.
+   - **Batch Deletion**: You can delete multiple sheets in one call by providing an array of sheet names (e.g., ["sheet1", "sheet2", "sheet3"])
+   - Returns: { deletedSheets: string[], failedSheets: Array<{ sheetName: string, error: string }>, message: string }
+
+9. selectChartType: Select the best chart type (bar, line, or pie) for visualizing query results
    - Input:
      * queryResults: { columns: string[], rows: Array<Record<string, unknown>> } - Extract from runQuery's result
      * sqlQuery: string - The SQL query string you used in runQuery
@@ -73,7 +106,7 @@ Available tools:
    - This tool analyzes the data and user request to determine the most appropriate chart type
    - MUST be called BEFORE generateChart when creating a visualization
 
-8. generateChart: Generate chart configuration JSON for the selected chart type
+10. generateChart: Generate chart configuration JSON for the selected chart type
    - Input:
      * chartType: "bar" | "line" | "pie" - The chart type selected by selectChartType
      * queryResults: { columns: string[], rows: Array<Record<string, unknown>> } - Extract from runQuery's result

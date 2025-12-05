@@ -28,6 +28,8 @@ import {
 import { listAvailableSheets } from '../../tools/list-available-sheets';
 import { viewSheet } from '../../tools/view-sheet';
 import { generateChart, selectChartType } from '../tools/generate-chart';
+import { renameSheet } from '../../tools/rename-sheet';
+import { deleteSheet } from '../../tools/delete-sheet';
 import { gsheetToDuckdb } from '../../tools/gsheet-to-duckdb';
 import { extractSchema } from '../../tools/extract-schema';
 import {
@@ -584,6 +586,7 @@ export const readDataAgent = async (
                     );
 
                     // Step 4: Create final view directly from source (MATCHES NEW ARCHITECTURE)
+                    // This matches datasource-to-duckdb.ts lines 152-156 exactly
                     await gsheetToDuckdb({
                       dbPath,
                       sharedLink: link,
@@ -591,6 +594,7 @@ export const readDataAgent = async (
                     });
 
                     // Step 5: Verify final view was created (MATCHES NEW ARCHITECTURE)
+                    // This matches datasource-to-duckdb.ts lines 198-208 pattern
                     const { DuckDBInstance } = await import('@duckdb/node-api');
                     const verifyInstance = await DuckDBInstance.create(dbPath);
                     const verifyConn = await verifyInstance.connect();
@@ -612,13 +616,16 @@ export const readDataAgent = async (
                     }
 
                     // Step 6: Extract schema from final view using new connection (MATCHES NEW ARCHITECTURE)
+                    // This matches datasource-to-duckdb.ts lines 215-220 exactly
                     schema = await extractSchema({
                       dbPath,
                       viewName: finalViewName,
                     });
 
+                    // Step 7: Drop temp view (cleanup)
                     await dropTable(dbPath, tempViewName);
 
+                    // Step 8: Register in registry (for tracking - new architecture doesn't use registry)
                     const { record } = await registerSheetView(
                       context,
                       link,
@@ -835,6 +842,60 @@ export const readDataAgent = async (
             chartType, // Pass the pre-selected chart type
           });
           return chartConfig;
+        },
+      }),
+      renameSheet: tool({
+        description:
+          'Rename a sheet/view to a more meaningful name. Use this when you want to give a sheet a better name based on its content, schema, or user context.',
+        inputSchema: z.object({
+          oldSheetName: z
+            .string()
+            .describe('Current name of the sheet/view to rename'),
+          newSheetName: z
+            .string()
+            .describe(
+              'New meaningful name for the sheet (use lowercase, numbers, underscores only)',
+            ),
+        }),
+        execute: async ({ oldSheetName, newSheetName }) => {
+          const workspace = getWorkspace();
+          if (!workspace) {
+            throw new Error('WORKSPACE environment variable is not set');
+          }
+          const { join } = await import('node:path');
+          const dbPath = join(workspace, conversationId, 'database.db');
+
+          const result = await renameSheet({
+            dbPath,
+            oldSheetName,
+            newSheetName,
+          });
+          return result;
+        },
+      }),
+      deleteSheet: tool({
+        description:
+          'Delete one or more sheets/views from the database. This permanently removes the views and all their data. Supports batch deletion of multiple sheets. Only use this when the user explicitly requests to delete sheet(s).',
+        inputSchema: z.object({
+          sheetNames: z
+            .array(z.string())
+            .describe(
+              'Array of sheet/view names to delete. Can delete one or more sheets at once. Use listAvailableSheets to see available sheets.',
+            ),
+        }),
+        execute: async ({ sheetNames }) => {
+          const workspace = getWorkspace();
+          if (!workspace) {
+            throw new Error('WORKSPACE environment variable is not set');
+          }
+          const { join } = await import('node:path');
+          const dbPath = join(workspace, conversationId, 'database.db');
+
+          const result = await deleteSheet({
+            dbPath,
+            sheetNames,
+          });
+          return result;
         },
       }),
     },

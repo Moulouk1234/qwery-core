@@ -2,9 +2,19 @@ import {
   FileSpreadsheetIcon,
   SearchIcon,
   LightbulbIcon,
+  ChevronDownIcon,
+  InfoIcon,
+  XCircleIcon,
 } from 'lucide-react';
-import { Button } from '../../shadcn/button';
-import { ToolErrorVisualizer } from './tool-error-visualizer';
+import { Button } from '../../../shadcn/button';
+import { ToolErrorVisualizer } from '../tool-error-visualizer';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '../../../shadcn/collapsible';
+import { cn } from '../../../lib/utils';
+import { useState } from 'react';
 
 export interface ViewSheetErrorProps {
   errorText: string;
@@ -104,7 +114,7 @@ export function ViewSheetError({
         )}
 
         {!suggestedSheetName && availableSheets.length === 0 && (
-          <div className="rounded-lg border bg-muted/50 p-3">
+          <div className="rounded-lg border p-3">
             <p className="text-muted-foreground text-xs">
               Try listing available sheets or check the sheet name spelling.
             </p>
@@ -114,12 +124,42 @@ export function ViewSheetError({
     );
   }
 
-  // For other error types, use the generic error visualizer
+  // For other error types, show simplified error with collapsible details
+  const [showDetails, setShowDetails] = useState(false);
+
   return (
-    <ToolErrorVisualizer
-      errorText={errorText}
-      title="Error Viewing Sheet"
-      description="An error occurred while trying to view the sheet."
-    />
+    <div className="min-w-0 space-y-3 p-4">
+      <div className="flex items-center gap-3">
+        <XCircleIcon className="size-5 text-destructive shrink-0" />
+        <span className="text-sm font-medium text-destructive">
+          Error viewing sheet
+        </span>
+      </div>
+      <Collapsible open={showDetails} onOpenChange={setShowDetails}>
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+          >
+            <InfoIcon className="mr-1.5 size-3.5" />
+            View details
+            <ChevronDownIcon
+              className={cn(
+                'ml-1.5 size-3.5 transition-transform duration-200',
+                showDetails && 'rotate-180',
+              )}
+            />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="mt-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+            <pre className="text-destructive text-xs font-mono whitespace-pre-wrap break-words">
+              {errorText}
+            </pre>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
   );
 }

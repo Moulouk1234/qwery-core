@@ -48,19 +48,19 @@ import {
 } from '../ai-elements/tool';
 import { Loader } from '../ai-elements/loader';
 import { ChatTransport, UIMessage, ToolUIPart } from 'ai';
-import { ChartRenderer, type ChartConfig } from './ai/chart-renderer';
-import { ChartTypeSelector, type ChartTypeSelection } from './ai/chart-type-selector';
+import { ChartRenderer, type ChartConfig } from './ai/charts/chart-renderer';
+import { ChartTypeSelector, type ChartTypeSelection } from './ai/charts/chart-type-selector';
 import { SQLQueryVisualizer, type SQLQueryResult } from './ai/sql-query-visualizer';
 import { SchemaVisualizer, type SchemaData } from './ai/schema-visualizer';
 import {
   AvailableSheetsVisualizer,
   type AvailableSheetsData,
-} from './ai/available-sheets-visualizer';
+} from './ai/sheets/available-sheets-visualizer';
 import {
   ViewSheetVisualizer,
   type ViewSheetData,
-} from './ai/view-sheet-visualizer';
-import { ViewSheetError } from './ai/view-sheet-error';
+} from './ai/sheets/view-sheet-visualizer';
+import { ViewSheetError } from './ai/sheets/view-sheet-error';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 import { BotAvatar } from './bot-avatar';

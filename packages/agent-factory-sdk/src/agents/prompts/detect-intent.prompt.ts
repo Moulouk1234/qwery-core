@@ -26,6 +26,7 @@ Guidelines:
 - Be conservative: when in doubt between two intents, prefer "other".
 - If the user is just saying hello or goodbye, use "greeting" or "goodbye".
 - If the user is asking to query or explore data, prefer "read-data".
+- If the user asks to delete, remove, or drop sheets/views, use "read-data" (data management operations).
 - If the user asks about the system itself, the agent, or Qwery (e.g., "who are you?", "what is Qwery?", "what can you do?", "how does this work?", "tell me about yourself"), use "system".
 - Consider message clarity: short, specific messages = higher confidence; long, vague messages = lower confidence
 - Consider keyword matching: messages with intent-specific keywords = higher confidence
@@ -48,6 +49,9 @@ Examples:
 - "show me a chart of sales by month" → intent: "read-data", complexity: "medium", needsChart: true
 - "visualize the trends" → intent: "read-data", complexity: "medium", needsChart: true
 - "compare sales by region" → intent: "read-data", complexity: "medium", needsChart: true
+- "delete duplicate views" → intent: "read-data", complexity: "medium", needsChart: false
+- "remove sheet X" → intent: "read-data", complexity: "simple", needsChart: false
+- "drop views Y and Z" → intent: "read-data", complexity: "simple", needsChart: false
 
 ## Output Format
 {

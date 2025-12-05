@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import * as React from 'react';
 import { Database, Table2, Copy, Check } from 'lucide-react';
 import { Button } from '../../shadcn/button';
@@ -29,9 +30,9 @@ export function SQLQueryVisualizer({
     result,
     className,
 }: SQLQueryVisualizerProps) {
-    const [copied, setCopied] = React.useState(false);
+    const [copied, setCopied] = useState(false);
 
-    const copyQuery = React.useCallback(async () => {
+    const copyQuery = useCallback(async () => {
         if (!query) return;
 
         try {
@@ -76,7 +77,7 @@ export function SQLQueryVisualizer({
                             )}
                         </Button>
                     </div>
-                    <div className="bg-muted/50 max-w-full min-w-0 overflow-hidden rounded-md">
+                    <div className="max-w-full min-w-0 overflow-hidden rounded-md">
                         <CodeBlock code={query} language="sql" />
                     </div>
                 </div>

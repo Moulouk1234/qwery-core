@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { ConversationHistory, type Conversation } from './conversation-history';
@@ -112,7 +113,7 @@ const generateMockConversations = (): Conversation[] => {
 };
 
 const DefaultComponent = () => {
-  const [currentConversationId, setCurrentConversationId] = React.useState<
+  const [currentConversationId, setCurrentConversationId] = useState<
     string | undefined
   >('1');
   const conversations = generateMockConversations();
@@ -182,10 +183,10 @@ export const Empty: Story = {
 };
 
 const WithManyConversationsComponent = () => {
-  const [currentConversationId, setCurrentConversationId] = React.useState<
+  const [currentConversationId, setCurrentConversationId] = useState<
     string | undefined
   >('1');
-  const conversations = React.useMemo(() => {
+  const conversations = useMemo(() => {
     const baseConversations = generateMockConversations();
     const additionalConversations: Conversation[] = [];
     const now = new Date();

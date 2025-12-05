@@ -1,9 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '../../lib/utils';
+import { cn } from '../../../lib/utils';
 import { BarChart3, TrendingUp, PieChart as PieChartIcon } from 'lucide-react';
-// Chart type definition (matches agent-factory-sdk)
 export type ChartType = 'bar' | 'line' | 'pie';
 
 export interface ChartTypeSelection {

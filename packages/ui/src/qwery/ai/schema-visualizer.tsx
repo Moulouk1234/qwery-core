@@ -22,6 +22,7 @@ export interface SchemaData {
 
 export interface SchemaVisualizerProps {
   schema: SchemaData;
+  tableName?: string;
   className?: string;
 }
 
@@ -30,22 +31,33 @@ export interface SchemaVisualizerProps {
  */
 export function SchemaVisualizer({
   schema,
+  tableName,
   className,
 }: SchemaVisualizerProps) {
+  const targetTableName = tableName || (schema.tables.length > 0 ? schema.tables[0]?.tableName : undefined);
+
   return (
     <div className={cn('space-y-4', className)}>
       {/* Schema Header */}
-      <div className="space-y-1">
+      <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Database className="h-4 w-4 text-muted-foreground" />
           <h4 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-            Database Schema
+            Table Schema
           </h4>
         </div>
-        <div className="text-sm text-muted-foreground pl-6">
-          <span className="font-medium">{schema.databaseName}</span>
+        {targetTableName && (
+          <div className="flex items-center gap-2 pl-6">
+            <Table2 className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">
+              {targetTableName}
+            </span>
+          </div>
+        )}
+        <div className="text-xs text-muted-foreground pl-6">
+          <span>Database: {schema.databaseName}</span>
           {schema.schemaName && schema.schemaName !== schema.databaseName && (
-            <span> / {schema.schemaName}</span>
+            <span> / Schema: {schema.schemaName}</span>
           )}
         </div>
       </div>
@@ -64,7 +76,7 @@ export function SchemaVisualizer({
           </div>
 
           {/* Columns Table */}
-          <div className="bg-muted/50 max-w-full min-w-0 overflow-hidden rounded-md">
+          <div className="max-w-full min-w-0 overflow-hidden rounded-lg border">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
