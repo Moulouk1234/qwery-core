@@ -171,7 +171,7 @@ export class FactoryAgent {
             ),
           );
         }
-      }, 120000);
+      }, 60000);
 
       let userInputSent = false;
 
@@ -369,5 +369,21 @@ export class FactoryAgent {
         );
       }
     });
+  }
+
+  /**
+   * Stop the agent and all its actors.
+   * This should be called on page refresh/unmount to cancel ongoing processing.
+   */
+  stop(): void {
+    const currentState = this.factoryActor.getSnapshot().value;
+    
+    if (currentState !== 'idle' && currentState !== 'stopped') {
+      this.factoryActor.send({ type: 'STOP' });
+    }
+    
+    this.actorRegistry.stopAll();
+    
+    this.factoryActor.stop();
   }
 }
