@@ -40,7 +40,7 @@
     "pg": "^8.13.1",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "uuid": "^11.0.3",
+    "uuid": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

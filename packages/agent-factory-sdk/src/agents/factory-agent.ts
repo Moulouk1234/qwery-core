@@ -1,6 +1,7 @@
 import { FinishReason, UIMessage } from 'ai';
 import { createActor } from 'xstate';
 import { nanoid } from 'nanoid';
+import { v4 as uuidv4 } from 'uuid';
 import { createStateMachine } from './state-machine';
 import { Repositories } from '@qwery/domain/repositories';
 import { ActorRegistry } from './utils/actor-registry';
@@ -264,6 +265,9 @@ export class FactoryAgent {
               clearTimeout(timeout);
               try {
                 const response = ctx.streamResult.toUIMessageStreamResponse({
+                  // Generate server-side UUIDs for message persistence
+                  // This ensures consistent IDs across sessions and prevents UUID format errors
+                  generateMessageId: () => uuidv4(),
                   onFinish: async ({
                     messages,
                     finishReason,

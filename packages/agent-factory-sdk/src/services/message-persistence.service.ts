@@ -8,6 +8,17 @@ import { MessageRole } from '@qwery/domain/entities';
 import { MessageOutput } from '@qwery/domain/usecases';
 
 /**
+ * Validates if a string is a valid UUID format
+ * Required because client-side message IDs (from useChat) may not be UUIDs,
+ * but the database expects UUID format for the id column
+ */
+function isUUID(str: string): boolean {
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+/**
  * Converts a UIMessage to the format that should be stored in MessageEntity.content
  * This stores the full UIMessage structure (id, role, metadata, parts) in the content field
  * for complete restoration to the UI
@@ -67,12 +78,20 @@ export class MessagePersistenceService {
     for (const message of messages) {
       try {
         // Check if message already exists (idempotency)
-        const existingMessage = await this.messageRepository.findById(
-          message.id,
-        );
-        if (existingMessage) {
-          // Message already exists, skip
-          continue;
+        // Only check if message.id is a valid UUID format
+        // Client-side IDs from useChat may not be UUIDs, so we validate before querying
+        if (message.id && message.id.trim() !== '' && isUUID(message.id)) {
+          try {
+            const existingMessage = await this.messageRepository.findById(
+              message.id,
+            );
+            if (existingMessage) {
+              // Message already exists, skip
+              continue;
+            }
+          } catch (error) {
+            console.error('Error checking if message already exists:', error);
+          }
         }
 
         await useCase.execute({
