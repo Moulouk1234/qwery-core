@@ -94,6 +94,23 @@ export const ListViewsDataSchema = z.object({
   message: z.string(),
 });
 
+export const RenameTableResultSchema = z.object({
+  oldTableName: z.string(),
+  newTableName: z.string(),
+  message: z.string(),
+});
+
+export const DeleteTableResultSchema = z.object({
+  deletedTables: z.array(z.string()),
+  failedTables: z.array(
+    z.object({
+      tableName: z.string(),
+      error: z.string(),
+    }),
+  ),
+  message: z.string(),
+});
+
 // ============================================================================
 // Type Exports (TypeScript types inferred from schemas)
 // ============================================================================
@@ -103,6 +120,8 @@ export type SQLQueryResult = z.infer<typeof SQLQueryResultSchema>;
 export type SchemaData = z.infer<typeof SchemaDataSchema>;
 export type ViewSheetData = z.infer<typeof ViewSheetDataSchema>;
 export type ListViewsData = z.infer<typeof ListViewsDataSchema>;
+export type RenameTableResult = z.infer<typeof RenameTableResultSchema>;
+export type DeleteTableResult = z.infer<typeof DeleteTableResultSchema>;
 
 // ============================================================================
 // Tool Type Inference Helpers

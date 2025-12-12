@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Database, Table2, Columns } from 'lucide-react';
+import { Database, Table2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export interface SchemaColumn {
@@ -34,84 +34,58 @@ export function SchemaVisualizer({
   tableName,
   className,
 }: SchemaVisualizerProps) {
-  const targetTableName =
-    tableName ||
-    (schema.tables.length > 0 ? schema.tables[0]?.tableName : undefined);
+  // Use the passed tableName to filter, or show all tables if not provided
+  const tables = tableName
+    ? schema.tables.filter((t) => t.tableName === tableName)
+    : schema.tables;
+
+  if (tables.length === 0) return null;
 
   return (
-    <div className={cn('space-y-4', className)}>
-      {/* Schema Header */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Database className="text-muted-foreground h-4 w-4" />
-          <h4 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-            Table Schema
-          </h4>
-        </div>
-        {targetTableName && (
-          <div className="flex items-center gap-2 pl-6">
-            <Table2 className="text-muted-foreground h-3.5 w-3.5" />
-            <span className="text-foreground text-sm font-medium">
-              {targetTableName}
-            </span>
-          </div>
-        )}
-        <div className="text-muted-foreground pl-6 text-xs">
-          <span>Database: {schema.databaseName}</span>
-          {schema.schemaName && schema.schemaName !== schema.databaseName && (
-            <span> / Schema: {schema.schemaName}</span>
-          )}
-        </div>
-      </div>
+    <div className={cn('flex flex-col gap-4', className)}>
 
-      {/* Tables */}
-      {schema.tables.map((table, tableIndex) => (
-        <div key={tableIndex} className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Table2 className="text-muted-foreground h-4 w-4" />
-            <h5 className="text-foreground text-sm font-semibold">
-              {table.tableName}
-            </h5>
-            <span className="text-muted-foreground text-xs">
-              ({table.columns.length} column
-              {table.columns.length !== 1 ? 's' : ''})
+
+      {tables.map((table) => (
+        <div
+          key={table.tableName}
+          className="overflow-hidden rounded-md border bg-card"
+        >
+          {/* Table Header */}
+          <div className="bg-muted/30 flex items-center justify-between border-b px-3 py-2">
+            <div className="flex items-center gap-2">
+              <Table2 className="text-primary/70 h-4 w-4" />
+              <h3 className="text-sm font-medium">{table.tableName}</h3>
+            </div>
+            <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 font-mono text-[10px]">
+              {table.columns.length} columns
             </span>
           </div>
 
           {/* Columns Table */}
-          <div className="max-w-full min-w-0 overflow-hidden rounded-lg border">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-muted/30 border-b">
-                    <th className="text-muted-foreground px-4 py-2 text-left text-xs font-medium">
-                      <div className="flex items-center gap-2">
-                        <Columns className="h-3 w-3" />
-                        Column Name
-                      </div>
-                    </th>
-                    <th className="text-muted-foreground px-4 py-2 text-left text-xs font-medium">
-                      Data Type
-                    </th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="bg-muted/5 border-b text-xs text-muted-foreground/70 uppercase tracking-wider">
+                  <th className="px-3 py-2 font-medium w-1/3">Column</th>
+                  <th className="px-3 py-2 font-medium">Type</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {table.columns.map((col) => (
+                  <tr
+                    key={col.columnName}
+                    className="hover:bg-muted/20 transition-colors"
+                  >
+                    <td className="text-foreground/90 px-3 py-1.5 font-medium">
+                      {col.columnName}
+                    </td>
+                    <td className="text-muted-foreground px-3 py-1.5 font-mono text-xs">
+                      {col.columnType}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {table.columns.map((column, colIndex) => (
-                    <tr
-                      key={colIndex}
-                      className="hover:bg-muted/20 border-b transition-colors"
-                    >
-                      <td className="px-4 py-2 text-sm font-medium">
-                        {column.columnName}
-                      </td>
-                      <td className="text-muted-foreground px-4 py-2 font-mono text-sm">
-                        {column.columnType}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       ))}

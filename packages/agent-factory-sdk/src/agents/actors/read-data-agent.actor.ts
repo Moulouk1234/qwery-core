@@ -11,9 +11,9 @@ import { fromPromise } from 'xstate/actors';
 import { resolveModel } from '../../services';
 import { testConnection } from '../../tools/test-connection';
 import type { SimpleSchema, SimpleTable } from '@qwery/domain/entities';
-import { renameSheet } from '../../tools/rename-sheet';
-import { deleteSheet } from '../../tools/delete-sheet';
 import { selectChartType, generateChart } from '../tools/generate-chart';
+import { renameTable } from '../../tools/rename-table';
+import { deleteTable } from '../../tools/delete-table';
 import { loadBusinessContext } from '../../tools/utils/business-context.storage';
 import { READ_DATA_AGENT_PROMPT } from '../prompts/read-data-agent.prompt';
 import type { BusinessContext } from '../../tools/types/business-context.types';
@@ -178,7 +178,7 @@ export const readDataAgent = async (
       }),
       getSchema: tool({
         description:
-          'Discover available data structures directly from DuckDB (views + attached databases). If viewName is provided, returns schema for that specific view/table. If viewNames (array) is provided, returns schemas for only those specific tables/views (more efficient than loading all). If neither is provided, returns schemas for everything discovered in DuckDB. This updates the business context automatically.',
+          'Get schema information (columns, data types, business context) for specific tables/views. Returns column names, types, and business context for the specified tables. If viewName is provided, returns schema for that specific view/table. If viewNames (array) is provided, returns schemas for only those specific tables/views. If neither is provided, returns schemas for everything discovered in DuckDB. This updates the business context automatically.',
         inputSchema: z.object({
           viewName: z.string().optional(),
           viewNames: z.array(z.string()).optional(),
@@ -699,37 +699,37 @@ export const readDataAgent = async (
           };
         },
       }),
-      renameSheet: tool({
+      renameTable: tool({
         description:
-          'Rename a sheet/view to give it a more meaningful name. Both oldSheetName and newSheetName are required.',
+          'Rename a table/view to give it a more meaningful name. Both oldTableName and newTableName are required.',
         inputSchema: z.object({
-          oldSheetName: z.string(),
-          newSheetName: z.string(),
+          oldTableName: z.string(),
+          newTableName: z.string(),
         }),
-        execute: async ({ oldSheetName, newSheetName }) => {
+        execute: async ({ oldTableName, newTableName }) => {
           if (!queryEngine) {
             throw new Error('Query engine not available');
           }
-          const result = await renameSheet({
-            oldSheetName,
-            newSheetName,
+          const result = await renameTable({
+            oldTableName,
+            newTableName,
             queryEngine,
           });
           return result;
         },
       }),
-      deleteSheet: tool({
+      deleteTable: tool({
         description:
-          'Delete one or more sheets/views from the database. Takes an array of sheet names to delete.',
+          'Delete one or more tables/views from the database. Takes an array of table names to delete.',
         inputSchema: z.object({
-          sheetNames: z.array(z.string()),
+          tableNames: z.array(z.string()),
         }),
-        execute: async ({ sheetNames }) => {
+        execute: async ({ tableNames }) => {
           if (!queryEngine) {
             throw new Error('Query engine not available');
           }
-          const result = await deleteSheet({
-            sheetNames,
+          const result = await deleteTable({
+            tableNames,
             queryEngine,
           });
           return result;

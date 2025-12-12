@@ -16,8 +16,6 @@ import type {
   ChartTypeSelection,
   SQLQueryResult,
   SchemaData,
-  ViewSheetData,
-  ListViewsData,
 } from './types';
 import { ChartTypeSchema, type ChartType } from '../types/chart.types';
 
@@ -37,46 +35,6 @@ type TestConnectionTool = ReturnType<
   }>
 >;
 
-type CreateDbViewFromSheetTool = ReturnType<
-  typeof tool<{
-    description: string;
-    inputSchema: z.ZodObject<{
-      sharedLink: z.ZodUnion<[z.ZodString, z.ZodArray<z.ZodString>]>;
-      sheetName: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodArray<z.ZodString>]>>;
-    }>;
-    execute: (input: {
-      sharedLink: string | string[];
-      sheetName?: string | string[];
-    }) => Promise<{
-      success: boolean;
-      viewName?: string;
-      displayName?: string;
-      error?: string;
-      link: string;
-    }[]>;
-  }>
->;
-
-type ListViewsTool = ReturnType<
-  typeof tool<{
-    description: string;
-    inputSchema: z.ZodObject<{
-      forceRefresh: z.ZodOptional<z.ZodBoolean>;
-    }>;
-    execute: (input: { forceRefresh?: boolean }) => Promise<ListViewsData>;
-  }>
->;
-
-type ViewSheetTool = ReturnType<
-  typeof tool<{
-    description: string;
-    inputSchema: z.ZodObject<{
-      sheetName: z.ZodString;
-      limit: z.ZodOptional<z.ZodNumber>;
-    }>;
-    execute: (input: { sheetName: string; limit?: number }) => Promise<ViewSheetData>;
-  }>
->;
 
 type GetSchemaTool = ReturnType<
   typeof tool<{
@@ -178,13 +136,44 @@ type GenerateChartTool = ReturnType<
 // Tool Set Type (represents all tools)
 // ============================================================================
 
+type RenameTableTool = ReturnType<
+  typeof tool<{
+    description: string;
+    inputSchema: z.ZodObject<{
+      oldTableName: z.ZodString;
+      newTableName: z.ZodString;
+    }>;
+    execute: (input: {
+      oldTableName: string;
+      newTableName: string;
+    }) => Promise<{
+      oldTableName: string;
+      newTableName: string;
+      message: string;
+    }>;
+  }>
+>;
+
+type DeleteTableTool = ReturnType<
+  typeof tool<{
+    description: string;
+    inputSchema: z.ZodObject<{
+      tableNames: z.ZodArray<z.ZodString>;
+    }>;
+    execute: (input: {
+      tableNames: string[];
+    }) => Promise<{
+      deletedTables: string[];
+      failedTables: Array<{ tableName: string; error: string }>;
+      message: string;
+    }>;
+  }>
+>;
+
 export type ReadDataAgentTools = {
   testConnection: TestConnectionTool;
-  createDbViewFromSheet: CreateDbViewFromSheetTool;
-  listViews: ListViewsTool;
-  renameSheet: unknown; // Simplified for now
-  deleteSheet: unknown; // Simplified for now
-  viewSheet: ViewSheetTool;
+  renameTable: RenameTableTool;
+  deleteTable: DeleteTableTool;
   getSchema: GetSchemaTool;
   runQuery: RunQueryTool;
   selectChartType: SelectChartTypeTool;
@@ -201,9 +190,8 @@ export type ReadDataAgentToolTypes = {
 
 // Individual tool type exports for convenience
 export type TestConnectionToolType = InferUITool<TestConnectionTool>;
-export type CreateDbViewFromSheetToolType = InferUITool<CreateDbViewFromSheetTool>;
-export type ListViewsToolType = InferUITool<ListViewsTool>;
-export type ViewSheetToolType = InferUITool<ViewSheetTool>;
+export type RenameTableToolType = InferUITool<RenameTableTool>;
+export type DeleteTableToolType = InferUITool<DeleteTableTool>;
 export type GetSchemaToolType = InferUITool<GetSchemaTool>;
 export type RunQueryToolType = InferUITool<RunQueryTool>;
 export type SelectChartTypeToolType = InferUITool<SelectChartTypeTool>;

@@ -254,11 +254,11 @@ export function ToolPart({ part, messageId, index }: ToolPartProps) {
           result={
             output?.result
               ? {
-                  result: {
-                    columns: output.result.columns,
-                    rows: output.result.rows,
-                  },
-                }
+                result: {
+                  columns: output.result.columns,
+                  rows: output.result.rows,
+                },
+              }
               : undefined
           }
         />
@@ -305,7 +305,9 @@ export function ToolPart({ part, messageId, index }: ToolPartProps) {
     >
       <ToolHeader title={toolName} type={part.type} state={part.state} />
       <ToolContent>
-        {part.input != null ? <ToolInput input={part.input} /> : null}
+        {part.input != null && part.type !== 'tool-getSchema' ? (
+          <ToolInput input={part.input} />
+        ) : null}
         {renderToolOutput()}
       </ToolContent>
     </Tool>
