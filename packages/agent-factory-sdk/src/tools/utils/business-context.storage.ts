@@ -8,6 +8,230 @@ import type {
 const BUSINESS_CONTEXT_FILE = 'business-context.json';
 
 /**
+ * Detects the storage protocol from a URI or path.
+ * Returns the protocol (without colon) or 'file' for local paths.
+ */
+function detectProtocol(pathOrUri: string): string {
+  try {
+    const url = new URL(pathOrUri);
+    return url.protocol.replace(':', '');
+  } catch {
+    // Not a valid URI, assume it's a local file path
+    return 'file';
+  }
+}
+
+/**
+ * Joins a URI path with a filename, handling both URI and local path formats.
+ */
+async function joinPath(basePath: string, filename: string): Promise<string> {
+  const protocol = detectProtocol(basePath);
+
+  if (protocol === 'file') {
+    // Handle both URI format (file:///path) and local path
+    let normalizedPath = basePath;
+    if (basePath.startsWith('file://')) {
+      normalizedPath = basePath.replace('file://', '');
+      // Remove leading slash for Windows compatibility
+      if (normalizedPath.startsWith('/') && process.platform === 'win32') {
+        normalizedPath = normalizedPath.substring(1);
+      }
+    }
+    const { join } = await import('node:path');
+    return join(normalizedPath, filename);
+  }
+
+  // For URI-based storage (s3://, etc.), append filename with proper separator
+  const separator = basePath.endsWith('/') ? '' : '/';
+  return `${basePath}${separator}${filename}`;
+}
+
+/**
+ * Reads file content from various storage backends.
+ */
+async function readFileContent(filePath: string): Promise<string> {
+  const protocol = detectProtocol(filePath);
+
+  if (protocol === 'file') {
+    const { readFile } = await import('node:fs/promises');
+    // Handle file:// URI format
+    let normalizedPath = filePath;
+    if (filePath.startsWith('file://')) {
+      normalizedPath = filePath.replace('file://', '');
+      if (normalizedPath.startsWith('/') && process.platform === 'win32') {
+        normalizedPath = normalizedPath.substring(1);
+      }
+    }
+    return await readFile(normalizedPath, 'utf-8');
+  }
+
+  if (protocol === 's3') {
+    const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3');
+    const url = new URL(filePath);
+    const bucket = url.hostname;
+    const key = url.pathname.startsWith('/')
+      ? url.pathname.substring(1)
+      : url.pathname;
+
+    // Build S3 client configuration
+    const s3Config: {
+      region: string;
+      endpoint?: string;
+      credentials?: {
+        accessKeyId: string;
+        secretAccessKey: string;
+      };
+      forcePathStyle?: boolean;
+    } = {
+      region:
+        process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-1',
+    };
+
+    // Support custom endpoints (e.g., MinIO)
+    if (process.env.S3_ENDPOINT) {
+      let endpoint = process.env.S3_ENDPOINT;
+      // Normalize endpoint to include protocol if missing
+      if (!endpoint.startsWith('http://') && !endpoint.startsWith('https://')) {
+        const useSsl = process.env.S3_USE_SSL === 'true';
+        endpoint = `${useSsl ? 'https' : 'http'}://${endpoint}`;
+      }
+      s3Config.endpoint = endpoint;
+      // Default to path style for custom endpoints (required for MinIO)
+      s3Config.forcePathStyle = process.env.S3_URL_STYLE !== 'virtual-hosted';
+    }
+
+    // Support custom credentials (e.g., MinIO)
+    if (process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY) {
+      s3Config.credentials = {
+        accessKeyId: process.env.S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+      };
+    }
+
+    const s3Client = new S3Client(s3Config);
+
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    });
+
+    const response = await s3Client.send(command);
+    if (!response.Body) {
+      throw new Error(`S3 object ${filePath} has no body`);
+    }
+
+    // Convert stream to string
+    const chunks: Uint8Array[] = [];
+    if (
+      response.Body &&
+      typeof response.Body === 'object' &&
+      Symbol.asyncIterator in response.Body
+    ) {
+      for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+        chunks.push(chunk);
+      }
+    } else {
+      throw new Error(`S3 object ${filePath} body is not iterable`);
+    }
+    const buffer = Buffer.concat(chunks);
+    return buffer.toString('utf-8');
+  }
+
+  throw new Error(
+    `Unsupported storage protocol: ${protocol} for path: ${filePath}`,
+  );
+}
+
+/**
+ * Writes file content to various storage backends.
+ */
+async function writeFileContent(
+  filePath: string,
+  content: string,
+): Promise<void> {
+  const protocol = detectProtocol(filePath);
+
+  if (protocol === 'file') {
+    const { mkdir, writeFile } = await import('node:fs/promises');
+    const { dirname } = await import('node:path');
+
+    // Handle file:// URI format
+    let normalizedPath = filePath;
+    if (filePath.startsWith('file://')) {
+      normalizedPath = filePath.replace('file://', '');
+      if (normalizedPath.startsWith('/') && process.platform === 'win32') {
+        normalizedPath = normalizedPath.substring(1);
+      }
+    }
+
+    const dir = dirname(normalizedPath);
+    await mkdir(dir, { recursive: true });
+    await writeFile(normalizedPath, content, 'utf-8');
+    return;
+  }
+
+  if (protocol === 's3') {
+    const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
+    const url = new URL(filePath);
+    const bucket = url.hostname;
+    const key = url.pathname.startsWith('/')
+      ? url.pathname.substring(1)
+      : url.pathname;
+
+    // Build S3 client configuration
+    const s3Config: {
+      region: string;
+      endpoint?: string;
+      credentials?: {
+        accessKeyId: string;
+        secretAccessKey: string;
+      };
+      forcePathStyle?: boolean;
+    } = {
+      region:
+        process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-1',
+    };
+
+    // Support custom endpoints (e.g., MinIO)
+    if (process.env.S3_ENDPOINT) {
+      let endpoint = process.env.S3_ENDPOINT;
+      // Normalize endpoint to include protocol if missing
+      if (!endpoint.startsWith('http://') && !endpoint.startsWith('https://')) {
+        const useSsl = process.env.S3_USE_SSL === 'true';
+        endpoint = `${useSsl ? 'https' : 'http'}://${endpoint}`;
+      }
+      s3Config.endpoint = endpoint;
+      // Default to path style for custom endpoints (required for MinIO)
+      s3Config.forcePathStyle = process.env.S3_URL_STYLE !== 'virtual-hosted';
+    }
+
+    // Support custom credentials (e.g., MinIO)
+    if (process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY) {
+      s3Config.credentials = {
+        accessKeyId: process.env.S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+      };
+    }
+
+    const s3Client = new S3Client(s3Config);
+
+    const command = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: content,
+      ContentType: 'application/json',
+    });
+
+    await s3Client.send(command);
+    return;
+  }
+
+  throw new Error(
+    `Unsupported storage protocol: ${protocol} for path: ${filePath}`,
+  );
+}
+
+/**
  * Create empty business context
  */
 export function createEmptyContext(): BusinessContext {
@@ -33,12 +257,10 @@ export function createEmptyContext(): BusinessContext {
 export async function loadBusinessContext(
   conversationDir: string,
 ): Promise<BusinessContext | null> {
-  const { readFile } = await import('node:fs/promises');
-  const { join } = await import('node:path');
-  const contextPath = join(conversationDir, BUSINESS_CONTEXT_FILE);
+  const contextPath = await joinPath(conversationDir, BUSINESS_CONTEXT_FILE);
 
   try {
-    const content = await readFile(contextPath, 'utf-8');
+    const content = await readFileContent(contextPath);
     const data = JSON.parse(content);
 
     // Reconstruct Maps from JSON with proper types
@@ -100,11 +322,7 @@ export async function saveBusinessContext(
   conversationDir: string,
   context: BusinessContext,
 ): Promise<void> {
-  const { mkdir, writeFile } = await import('node:fs/promises');
-  const { join } = await import('node:path');
-  await mkdir(conversationDir, { recursive: true });
-
-  const contextPath = join(conversationDir, BUSINESS_CONTEXT_FILE);
+  const contextPath = await joinPath(conversationDir, BUSINESS_CONTEXT_FILE);
 
   // Convert Maps to arrays for JSON serialization
   const serializable = {
@@ -117,7 +335,7 @@ export async function saveBusinessContext(
     updatedAt: new Date().toISOString(),
   };
 
-  await writeFile(contextPath, JSON.stringify(serializable, null, 2), 'utf-8');
+  await writeFileContent(contextPath, JSON.stringify(serializable, null, 2));
 }
 
 /**

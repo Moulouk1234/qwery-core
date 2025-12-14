@@ -6,7 +6,7 @@ export class ProjectOutput {
   @Expose()
   public id!: string;
   @Expose()
-  public org_id!: string;
+  public organizationId!: string;
   @Expose()
   public name!: string;
   @Expose()
@@ -32,7 +32,7 @@ export class ProjectOutput {
 }
 
 export type CreateProjectInput = {
-  org_id: string;
+  organizationId: string;
   name: string;
   description?: string;
   createdBy: string;

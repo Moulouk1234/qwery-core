@@ -6,7 +6,7 @@ import { CreateProjectInput, UpdateProjectInput } from '../usecases';
 
 export const ProjectSchema = z.object({
   id: z.string().uuid().describe('The unique identifier for the project'),
-  org_id: z
+  organizationId: z
     .string()
     .uuid()
     .describe('The unique identifier for the organisation'),
@@ -47,7 +47,7 @@ export class ProjectEntity extends Entity<string, typeof ProjectSchema> {
   @Expose()
   declare public id: string;
   @Expose()
-  public org_id!: string;
+  public organizationId!: string;
   @Expose()
   public name!: string;
   @Expose()
@@ -72,7 +72,7 @@ export class ProjectEntity extends Entity<string, typeof ProjectSchema> {
     const now = new Date();
     const project: Project = {
       id,
-      org_id: newProject.org_id,
+      organizationId: newProject.organizationId,
       name: newProject.name,
       slug,
       description: newProject.description,

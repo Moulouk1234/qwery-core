@@ -28,7 +28,7 @@ export class ProjectRepository extends IProjectRepository {
 
   async findAllByOrganizationId(orgId: string): Promise<Project[]> {
     const projects = Array.from(this.projects.values());
-    return projects.filter((project) => project.org_id === orgId);
+    return projects.filter((project) => project.organizationId === orgId);
   }
 
   async create(entity: Project): Promise<Project> {

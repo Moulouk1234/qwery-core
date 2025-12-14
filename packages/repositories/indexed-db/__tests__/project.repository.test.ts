@@ -32,7 +32,7 @@ describe('ProjectRepository', () => {
     const id = overrides?.id || '550e8400-e29b-41d4-a716-446655440000';
     return {
       id,
-      org_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      organizationId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
       name: 'Test Project',
       slug: repository.shortenId(id),
       description: 'Test Description',
@@ -111,17 +111,17 @@ describe('ProjectRepository', () => {
 
       const project1 = createTestProject({
         id: '550e8400-e29b-41d4-a716-446655440000',
-        org_id: orgId1,
+        organizationId: orgId1,
         name: 'Project 1',
       });
       const project2 = createTestProject({
         id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-        org_id: orgId1,
+        organizationId: orgId1,
         name: 'Project 2',
       });
       const project3 = createTestProject({
         id: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
-        org_id: orgId2,
+        organizationId: orgId2,
         name: 'Other Org Project',
       });
 
@@ -151,7 +151,9 @@ describe('ProjectRepository', () => {
       const project = createTestProject();
       await repository.create(project);
 
-      const result = await repository.findAllByOrganizationId(project.org_id);
+      const result = await repository.findAllByOrganizationId(
+        project.organizationId,
+      );
 
       expect(result[0]?.createdAt).toBeInstanceOf(Date);
       expect(result[0]?.updatedAt).toBeInstanceOf(Date);
@@ -342,7 +344,7 @@ describe('ProjectRepository', () => {
 
     it('should preserve all project fields correctly', async () => {
       const project = createTestProject({
-        org_id: '8d0f678a-8536-51ef-a55c-f18gd2g01bf8',
+        organizationId: '8d0f678a-8536-51ef-a55c-f18gd2g01bf8',
         name: 'Complex Project',
         description: 'A complex project description',
         status: 'pending',
@@ -351,7 +353,7 @@ describe('ProjectRepository', () => {
       await repository.create(project);
       const found = await repository.findById(project.id);
 
-      expect(found.org_id).toBe(project.org_id);
+      expect(found.organizationId).toBe(project.organizationId);
       expect(found.name).toBe(project.name);
       expect(found.slug).toBe(repository.shortenId(project.id));
       expect(found.description).toBe(project.description);
@@ -360,16 +362,16 @@ describe('ProjectRepository', () => {
       expect(found.updatedBy).toBe(project.updatedBy);
     });
 
-    it('should handle projects with same org_id', async () => {
+    it('should handle projects with same organizationId', async () => {
       const orgId = '8d0f678a-8536-51ef-a55c-f18gd2g01bf8';
       const p1 = createTestProject({
         id: '550e8400-e29b-41d4-a716-446655440000',
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Project 1',
       });
       const p2 = createTestProject({
         id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Project 2',
       });
 
@@ -378,7 +380,7 @@ describe('ProjectRepository', () => {
 
       const all = await repository.findAll();
       expect(all).toHaveLength(2);
-      expect(all.every((p) => p.org_id === orgId)).toBe(true);
+      expect(all.every((p) => p.organizationId === orgId)).toBe(true);
       expect(all.find((p) => p.id === p1.id)?.slug).toBe(
         repository.shortenId(p1.id),
       );

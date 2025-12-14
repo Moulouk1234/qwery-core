@@ -553,7 +553,7 @@ export class InteractiveCommandRouter {
           (options['organization-id'] ?? options['o'])
             ? projects.filter(
                 (project) =>
-                  project.org_id ===
+                  project.organizationId ===
                   (options['organization-id'] ?? options['o']),
               )
             : projects;
@@ -562,7 +562,7 @@ export class InteractiveCommandRouter {
         const rows = filtered.map((project) => ({
           id: project.id,
           name: project.name,
-          organization: project.org_id,
+          organization: project.organizationId,
           status: project.status,
           createdBy: project.createdBy,
           updatedAt: project.updatedAt.toISOString(),
@@ -604,7 +604,7 @@ export class InteractiveCommandRouter {
           'cli';
 
         const payload = {
-          org_id: organizationId,
+          organizationId: organizationId,
           name,
           description,
           status: options['status'] ?? options['s'] ?? 'active',
@@ -619,7 +619,7 @@ export class InteractiveCommandRouter {
         const summary = {
           id: projectDto.id,
           name: projectDto.name,
-          organizationId: projectDto.org_id,
+          organizationId: projectDto.organizationId,
           description: projectDto.description,
           status: projectDto.status,
           slug: projectDto.slug,

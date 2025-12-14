@@ -55,7 +55,7 @@ async function createDefaultProject(
 ): Promise<ProjectOutput> {
   const useCase = new CreateProjectService(projectRepository);
   const project = await useCase.execute({
-    org_id: orgId,
+    organizationId: orgId,
     name: 'Default Project',
     createdBy: userId,
   });

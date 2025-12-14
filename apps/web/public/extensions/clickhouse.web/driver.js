@@ -8654,7 +8654,7 @@ OrganizationEntity = __decorateClass([
 // packages/domain/src/entities/project.type.ts
 var ProjectSchema = external_exports.object({
   id: external_exports.string().uuid().describe("The unique identifier for the project"),
-  org_id: external_exports.string().uuid().describe("The unique identifier for the organisation"),
+  organizationId: external_exports.string().uuid().describe("The unique identifier for the organisation"),
   name: external_exports.string().min(1).max(255).describe("The name of the project"),
   slug: external_exports.string().min(1).describe("The slug of the project"),
   description: external_exports.string().min(1).max(1024).optional().describe("The description of the project"),
@@ -8670,7 +8670,7 @@ var ProjectEntity = class extends Entity {
     const now = /* @__PURE__ */ new Date();
     const project = {
       id,
-      org_id: newProject.org_id,
+      organizationId: newProject.organizationId,
       name: newProject.name,
       slug,
       description: newProject.description,
@@ -8700,7 +8700,7 @@ __decorateClass([
 ], ProjectEntity.prototype, "id", 2);
 __decorateClass([
   Expose()
-], ProjectEntity.prototype, "org_id", 2);
+], ProjectEntity.prototype, "organizationId", 2);
 __decorateClass([
   Expose()
 ], ProjectEntity.prototype, "name", 2);

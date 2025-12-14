@@ -102,7 +102,7 @@ class MockProjectRepository implements IProjectRepository {
 
   async findAllByOrganizationId(orgId: string) {
     const projects = Array.from(this.projects.values());
-    return projects.filter((project) => project.org_id === orgId);
+    return projects.filter((project) => project.organizationId === orgId);
   }
 
   async findById(id: string) {
@@ -359,7 +359,7 @@ describe('InitWorkspaceService', () => {
     it('should use existing project when projectId provided', async () => {
       const project: Project = {
         id: projectId,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Test Project',
         slug: 'test-project',
         description: 'Test description',
@@ -386,7 +386,7 @@ describe('InitWorkspaceService', () => {
     it('should use first project when multiple exist and no projectId provided', async () => {
       const project1: Project = {
         id: '7c9e6679-7425-40de-944b-e07fc1f90ae1',
-        org_id: orgId,
+        organizationId: orgId,
         name: 'First Project',
         slug: 'first-project',
         description: 'First project',
@@ -399,7 +399,7 @@ describe('InitWorkspaceService', () => {
 
       const project2: Project = {
         id: '7c9e6679-7425-40de-944b-e07fc1f90ae2',
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Second Project',
         slug: 'second-project',
         description: 'Second project',
@@ -453,7 +453,7 @@ describe('InitWorkspaceService', () => {
 
       const project: Project = {
         id: projectId,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Test Project',
         slug: 'test-project',
         description: 'Test description',
@@ -684,9 +684,9 @@ describe('InitWorkspaceService', () => {
         const result = await serviceWithNotebook.execute({ userId: '' });
         // Should still create project successfully using uuidv4() fallback (line 123)
         expect(result.project).toBeDefined();
-        expect(result.project?.org_id).toBeDefined();
-        // The org_id should be a valid UUID (from uuidv4() fallback)
-        expect(result.project?.org_id).toMatch(
+        expect(result.project?.organizationId).toBeDefined();
+        // The organizationId should be a valid UUID (from uuidv4() fallback)
+        expect(result.project?.organizationId).toMatch(
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
         );
       } finally {

@@ -138,7 +138,7 @@ export function ProjectBreadcrumb() {
   const filteredProjects = useMemo(() => {
     if (!projects.data || !workspace.organizationId) return [];
     return projects.data
-      .filter((proj) => proj.org_id === workspace.organizationId)
+      .filter((proj) => proj.organizationId === workspace.organizationId)
       .map((proj) => toBreadcrumbNodeItem(proj));
   }, [projects.data, workspace.organizationId]);
 
@@ -197,7 +197,7 @@ export function ProjectBreadcrumb() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          org_id: workspace.organizationId,
+          organizationId: workspace.organizationId,
           name: 'New Project',
           createdBy: workspace.username || 'system',
         }),

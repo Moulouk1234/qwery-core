@@ -56,7 +56,7 @@ describe('UsageRepository', () => {
     testProjectId = uuidv4();
     const testProject: Project = {
       id: testProjectId,
-      org_id: testOrgId,
+      organizationId: testOrgId,
       name: 'Test Project',
       slug: 'test-project',
       description: 'Test Description',

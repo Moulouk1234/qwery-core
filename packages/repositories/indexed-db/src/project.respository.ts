@@ -41,7 +41,9 @@ export class ProjectRepository extends IProjectRepository {
           const objectStore = db.createObjectStore(STORE_NAME, {
             keyPath: 'id',
           });
-          objectStore.createIndex('org_id', 'org_id', { unique: false });
+          objectStore.createIndex('organization_id', 'organizationId', {
+            unique: false,
+          });
           objectStore.createIndex('slug', 'slug', { unique: false });
         }
       };
@@ -162,7 +164,7 @@ export class ProjectRepository extends IProjectRepository {
 
       const transaction = this.db.transaction([STORE_NAME], 'readonly');
       const store = transaction.objectStore(STORE_NAME);
-      const index = store.index('org_id');
+      const index = store.index('organization_id');
       const request = index.getAll(orgId);
 
       request.onerror = () => {

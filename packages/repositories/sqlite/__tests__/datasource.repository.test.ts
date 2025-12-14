@@ -27,7 +27,7 @@ describe('DatasourceRepository', () => {
     testProjectId = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
     const testProject: Project = {
       id: testProjectId,
-      org_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      organizationId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
       name: 'Test Project',
       slug: projectRepository.shortenId(testProjectId),
       description: 'Test Description',
@@ -158,7 +158,7 @@ describe('DatasourceRepository', () => {
       // Create a second project for this test
       const testProject2: Project = {
         id: projectId2,
-        org_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        organizationId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
         name: 'Test Project 2',
         slug: projectRepository.shortenId(projectId2),
         description: 'Test Description',

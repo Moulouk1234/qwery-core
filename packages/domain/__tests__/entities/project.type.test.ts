@@ -5,7 +5,7 @@ import type { Project } from '../../src/entities/project.type';
 describe('ProjectEntity', () => {
   const createTestProject = (): Project => ({
     id: '550e8400-e29b-41d4-a716-446655440000',
-    org_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    organizationId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
     name: 'Test Project',
     slug: 'test-project',
     description: 'Test description',
@@ -19,17 +19,18 @@ describe('ProjectEntity', () => {
   describe('create', () => {
     it('should create a new project entity', () => {
       const entity = ProjectEntity.create({
-        org_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        organizationId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
         name: 'New Project',
         description: 'New description',
-        status: 'active',
         createdBy: 'user-id',
       });
 
       expect(entity.id).toBeDefined();
       expect(entity.name).toBe('New Project');
       expect(entity.slug).toBeDefined();
-      expect(entity.org_id).toBe('6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+      expect(entity.organizationId).toBe(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      );
     });
   });
 
@@ -102,7 +103,7 @@ describe('ProjectEntity', () => {
         name: 'Updated Name',
       });
 
-      expect(updated.org_id).toBe(project.org_id);
+      expect(updated.organizationId).toBe(project.organizationId);
       expect(updated.slug).toBe(project.slug);
       expect(updated.createdBy).toBe(project.createdBy);
       expect(updated.createdAt).toEqual(project.createdAt);

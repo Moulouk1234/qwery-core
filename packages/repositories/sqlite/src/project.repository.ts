@@ -31,7 +31,7 @@ export class ProjectRepository extends IProjectRepository {
       ...project,
       created_at: project.createdAt.toISOString(),
       updated_at: project.updatedAt.toISOString(),
-      org_id: project.org_id,
+      organization_id: project.organizationId,
       created_by: project.createdBy,
       updated_by: project.updatedBy,
     };
@@ -42,7 +42,7 @@ export class ProjectRepository extends IProjectRepository {
       id: row.id as string,
       slug: row.slug as string,
       name: row.name as string,
-      org_id: row.org_id as string,
+      organizationId: row.organization_id as string,
       description: row.description as string,
       status: row.status as string,
       createdAt: new Date(row.created_at as string),
@@ -75,7 +75,9 @@ export class ProjectRepository extends IProjectRepository {
 
   async findAllByOrganizationId(orgId: string): Promise<Project[]> {
     await this.init();
-    const stmt = this.db.prepare('SELECT * FROM projects WHERE org_id = ?');
+    const stmt = this.db.prepare(
+      'SELECT * FROM projects WHERE organization_id = ?',
+    );
     const rows = stmt.all(orgId) as Record<string, unknown>[];
     return rows.map((row) => this.deserialize(row));
   }
@@ -103,7 +105,7 @@ export class ProjectRepository extends IProjectRepository {
 
     const serialized = this.serialize(entityWithSlug);
     const stmt = this.db.prepare(`
-      INSERT INTO projects (id, slug, name, org_id, description, status, created_at, updated_at, created_by, updated_by)
+      INSERT INTO projects (id, slug, name, organization_id, description, status, created_at, updated_at, created_by, updated_by)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
@@ -112,7 +114,7 @@ export class ProjectRepository extends IProjectRepository {
         serialized.id,
         serialized.slug,
         serialized.name,
-        serialized.org_id,
+        serialized.organization_id,
         serialized.description,
         serialized.status,
         serialized.created_at,

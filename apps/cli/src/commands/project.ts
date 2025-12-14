@@ -23,7 +23,7 @@ interface ProjectCreateOptions {
 }
 
 type CreateProjectPayload = {
-  org_id: string;
+  organizationId: string;
   name: string;
   description: string;
   status: string;
@@ -57,7 +57,7 @@ export function registerProjectCommands(
 
       const filtered = options.organizationId
         ? projects.filter(
-            (project) => project.org_id === options.organizationId,
+            (project) => project.organizationId === options.organizationId,
           )
         : projects;
 
@@ -65,7 +65,7 @@ export function registerProjectCommands(
       const rows = filtered.map((project) => ({
         id: project.id,
         name: project.name,
-        organization: project.org_id,
+        organization: project.organizationId,
         status: project.status,
         createdBy: project.createdBy,
         updatedAt: project.updatedAt.toISOString(),
@@ -105,7 +105,7 @@ export function registerProjectCommands(
         options.createdBy ?? workspace?.username ?? workspace?.userId ?? 'cli';
 
       const payload: CreateProjectPayload = {
-        org_id: organizationId,
+        organizationId: organizationId,
         name,
         description,
         status: options.status ?? 'active',
@@ -152,7 +152,7 @@ function projectToSummary(project: ProjectOutput) {
   return {
     id: project.id,
     name: project.name,
-    organizationId: project.org_id,
+    organizationId: project.organizationId,
     description: project.description,
     status: project.status,
     slug: project.slug,

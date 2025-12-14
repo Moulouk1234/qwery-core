@@ -51,7 +51,7 @@ export class CreateUsageService implements CreateUsageUseCase {
       ...input,
       conversationId: conversation.id,
       projectId: conversation.projectId,
-      organizationId: project.org_id,
+      organizationId: project.organizationId,
     });
 
     const usage = await this.usageRepository.create(

@@ -47,7 +47,7 @@ describe('CreateProjectService', () => {
     const service = new CreateProjectService(repository);
 
     const result = await service.execute({
-      org_id: '550e8400-e29b-41d4-a716-446655440000',
+      organizationId: '550e8400-e29b-41d4-a716-446655440000',
       name: 'Test Project',
       description: 'Test description',
       status: 'active',
@@ -59,7 +59,7 @@ describe('CreateProjectService', () => {
     expect(result.name).toBe('Test Project');
     expect(result.description).toBe('Test description');
     expect(result.status).toBe('active');
-    expect(result.org_id).toBe('550e8400-e29b-41d4-a716-446655440000');
+    expect(result.organizationId).toBe('550e8400-e29b-41d4-a716-446655440000');
     expect(result.slug).toBeDefined();
     expect(result.createdAt).toBeInstanceOf(Date);
     expect(result.updatedAt).toBeInstanceOf(Date);
@@ -70,7 +70,7 @@ describe('CreateProjectService', () => {
     const service = new CreateProjectService(repository);
 
     const result1 = await service.execute({
-      org_id: '550e8400-e29b-41d4-a716-446655440000',
+      organizationId: '550e8400-e29b-41d4-a716-446655440000',
       name: 'Project 1',
       description: 'Description 1',
       status: 'active',
@@ -78,7 +78,7 @@ describe('CreateProjectService', () => {
     });
 
     const result2 = await service.execute({
-      org_id: '550e8400-e29b-41d4-a716-446655440000',
+      organizationId: '550e8400-e29b-41d4-a716-446655440000',
       name: 'Project 2',
       description: 'Description 2',
       status: 'active',

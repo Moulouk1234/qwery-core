@@ -52,7 +52,7 @@ describe('GetProjectService', () => {
 
     const project: Project = {
       id: '550e8400-e29b-41d4-a716-446655440000',
-      org_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      organizationId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
       name: 'Test Project',
       slug: 'test-project',
       description: 'Test description',
@@ -92,7 +92,7 @@ describe('GetProjectBySlugService', () => {
 
     const project: Project = {
       id: '550e8400-e29b-41d4-a716-446655440000',
-      org_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      organizationId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
       name: 'Test Project',
       slug: 'test-project',
       description: 'Test description',
@@ -113,7 +113,7 @@ describe('GetProjectBySlugService', () => {
     expect(result.slug).toBe(project.slug);
     expect(result.description).toBe(project.description);
     expect(result.status).toBe(project.status);
-    expect(result.org_id).toBe(project.org_id);
+    expect(result.organizationId).toBe(project.organizationId);
   });
 
   it('should throw DomainException when project not found by slug', async () => {
@@ -134,7 +134,7 @@ describe('GetProjectBySlugService', () => {
 
     const project: Project = {
       id: '550e8400-e29b-41d4-a716-446655440000',
-      org_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      organizationId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
       name: 'Test Project',
       slug: 'test-project',
       description: 'Test description',
@@ -154,7 +154,7 @@ describe('GetProjectBySlugService', () => {
     expect(result.slug).toBe(project.slug);
     expect(result.description).toBe(project.description);
     expect(result.status).toBe(project.status);
-    expect(result.org_id).toBe(project.org_id);
+    expect(result.organizationId).toBe(project.organizationId);
     expect(result.createdAt).toEqual(project.createdAt);
     expect(result.updatedAt).toEqual(project.updatedAt);
     expect(result.createdBy).toBe(project.createdBy);
@@ -167,7 +167,7 @@ describe('GetProjectBySlugService', () => {
 
     const project1: Project = {
       id: '550e8400-e29b-41d4-a716-446655440000',
-      org_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      organizationId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
       name: 'First Project',
       slug: 'first-project',
       description: 'First description',
@@ -180,7 +180,7 @@ describe('GetProjectBySlugService', () => {
 
     const project2: Project = {
       id: '550e8400-e29b-41d4-a716-446655440001',
-      org_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      organizationId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
       name: 'Second Project',
       slug: 'second-project',
       description: 'Second description',

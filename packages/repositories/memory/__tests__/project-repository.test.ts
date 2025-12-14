@@ -18,7 +18,7 @@ describe('ProjectRepository', () => {
     it('should create a project', async () => {
       const project: Project = {
         id: validUuid1,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Test Project',
         slug: 'test-project',
         description: 'A test project',
@@ -41,7 +41,7 @@ describe('ProjectRepository', () => {
     it('should find project by id', async () => {
       const project: Project = {
         id: validUuid1,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Test Project',
         slug: 'test-project',
         description: 'A test project',
@@ -68,7 +68,7 @@ describe('ProjectRepository', () => {
     it('should find project by slug', async () => {
       const project: Project = {
         id: validUuid1,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Test Project',
         slug: 'test-project',
         description: 'A test project',
@@ -102,7 +102,7 @@ describe('ProjectRepository', () => {
       const otherOrgId = '8d0f678a-8536-51ef-a55c-f18gd2g01bf8';
       const project1: Project = {
         id: validUuid1,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Project 1',
         slug: 'project-1',
         description: 'First project',
@@ -115,7 +115,7 @@ describe('ProjectRepository', () => {
 
       const project2: Project = {
         id: validUuid2,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Project 2',
         slug: 'project-2',
         description: 'Second project',
@@ -128,7 +128,7 @@ describe('ProjectRepository', () => {
 
       const project3: Project = {
         id: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
-        org_id: otherOrgId,
+        organizationId: otherOrgId,
         name: 'Other Org Project',
         slug: 'other-org-project',
         description: 'Project from other org',
@@ -153,7 +153,7 @@ describe('ProjectRepository', () => {
     it('should return empty array for non-existent organization', async () => {
       const project: Project = {
         id: validUuid1,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Test Project',
         slug: 'test-project',
         description: 'A test project',
@@ -181,7 +181,7 @@ describe('ProjectRepository', () => {
     it('should return all projects', async () => {
       const project1: Project = {
         id: validUuid1,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Project 1',
         slug: 'project-1',
         description: 'First project',
@@ -194,7 +194,7 @@ describe('ProjectRepository', () => {
 
       const project2: Project = {
         id: validUuid2,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Project 2',
         slug: 'project-2',
         description: 'Second project',
@@ -218,7 +218,7 @@ describe('ProjectRepository', () => {
       for (let i = 0; i < 5; i++) {
         const project: Project = {
           id: `01ARZ3NDEKTSV4RRFFQ69G5F${i}`,
-          org_id: orgId,
+          organizationId: orgId,
           name: `Project ${i}`,
           slug: `project-${i}`,
           description: `Description ${i}`,
@@ -240,7 +240,7 @@ describe('ProjectRepository', () => {
     it('should update an existing project', async () => {
       const project: Project = {
         id: validUuid1,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Test Project',
         slug: 'test-project',
         description: 'A test project',
@@ -273,7 +273,7 @@ describe('ProjectRepository', () => {
     it('should throw error when updating non-existent project', async () => {
       const project: Project = {
         id: validUuid1,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Test Project',
         slug: 'test-project',
         description: 'A test project',
@@ -294,7 +294,7 @@ describe('ProjectRepository', () => {
     it('should delete an existing project', async () => {
       const project: Project = {
         id: validUuid1,
-        org_id: orgId,
+        organizationId: orgId,
         name: 'Test Project',
         slug: 'test-project',
         description: 'A test project',

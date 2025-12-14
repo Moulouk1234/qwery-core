@@ -27,7 +27,7 @@ export function initializeSchema(db: Database.Database): void {
       id TEXT PRIMARY KEY,
       slug TEXT NOT NULL,
       name TEXT NOT NULL,
-      org_id TEXT NOT NULL,
+      organization_id TEXT NOT NULL,
       description TEXT,
       status TEXT,
       created_at TEXT NOT NULL,
@@ -36,7 +36,7 @@ export function initializeSchema(db: Database.Database): void {
       updated_by TEXT NOT NULL
     );
     
-    CREATE INDEX IF NOT EXISTS idx_projects_org_id ON projects(org_id);
+    CREATE INDEX IF NOT EXISTS idx_projects_organization_id ON projects(organization_id);
     CREATE INDEX IF NOT EXISTS idx_projects_slug ON projects(slug);
   `);
 
