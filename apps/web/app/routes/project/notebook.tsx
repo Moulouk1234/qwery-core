@@ -461,7 +461,9 @@ export default function NotebookPage() {
 
   // Dialog state for unsaved changes
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<
+    (() => void) | null
+  >(null);
   const [hasUnsavedChangesState, setHasUnsavedChangesState] = useState(false);
 
   // Function to check if there are unsaved changes
@@ -494,7 +496,8 @@ export default function NotebookPage() {
         currentCell.cellId !== savedCell.cellId ||
         currentCell.cellType !== savedCell.cellType ||
         currentCell.query !== savedCell.query ||
-        JSON.stringify(currentCell.datasources) !== JSON.stringify(savedCell.datasources) ||
+        JSON.stringify(currentCell.datasources) !==
+          JSON.stringify(savedCell.datasources) ||
         currentCell.isActive !== savedCell.isActive ||
         currentCell.runMode !== savedCell.runMode
       ) {
@@ -528,7 +531,9 @@ export default function NotebookPage() {
         }
       } else {
         // Remove slug if present
-        const updated = unsavedSlugs.filter((s) => s !== normalizedNotebook.slug);
+        const updated = unsavedSlugs.filter(
+          (s) => s !== normalizedNotebook.slug,
+        );
         localStorage.setItem(storageKey, JSON.stringify(updated));
       }
     } catch (error) {
@@ -602,7 +607,9 @@ export default function NotebookPage() {
         const unsavedSlugs = JSON.parse(
           localStorage.getItem(storageKey) || '[]',
         ) as string[];
-        const updated = unsavedSlugs.filter((s) => s !== normalizedNotebook.slug);
+        const updated = unsavedSlugs.filter(
+          (s) => s !== normalizedNotebook.slug,
+        );
         localStorage.setItem(storageKey, JSON.stringify(updated));
       } catch (error) {
         console.error('Failed to clear unsaved notebook state:', error);
@@ -661,7 +668,7 @@ export default function NotebookPage() {
     const handleKeyDown = (event: KeyboardEvent) => {
       const isMac = navigator.platform.toUpperCase().includes('MAC');
       const isModKeyPressed = isMac ? event.metaKey : event.ctrlKey;
-      
+
       if (isModKeyPressed && event.key === 's') {
         event.preventDefault();
         handleSave();
@@ -676,21 +683,19 @@ export default function NotebookPage() {
   }, [handleSave]);
 
   // Block navigation when there are unsaved changes
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) => {
-      // Only block if navigating to a different notebook or leaving notebook page
-      const isDifferentNotebook = 
-        currentLocation.pathname.startsWith('/notebook/') &&
-        nextLocation.pathname.startsWith('/notebook/') &&
-        currentLocation.pathname !== nextLocation.pathname;
-      
-      const isLeavingNotebook = 
-        currentLocation.pathname.startsWith('/notebook/') &&
-        !nextLocation.pathname.startsWith('/notebook/');
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    // Only block if navigating to a different notebook or leaving notebook page
+    const isDifferentNotebook =
+      currentLocation.pathname.startsWith('/notebook/') &&
+      nextLocation.pathname.startsWith('/notebook/') &&
+      currentLocation.pathname !== nextLocation.pathname;
 
-      return hasUnsavedChanges() && (isDifferentNotebook || isLeavingNotebook);
-    }
-  );
+    const isLeavingNotebook =
+      currentLocation.pathname.startsWith('/notebook/') &&
+      !nextLocation.pathname.startsWith('/notebook/');
+
+    return hasUnsavedChanges() && (isDifferentNotebook || isLeavingNotebook);
+  });
 
   // Handle blocked navigation
   useEffect(() => {
@@ -723,14 +728,16 @@ export default function NotebookPage() {
         const unsavedSlugs = JSON.parse(
           localStorage.getItem(storageKey) || '[]',
         ) as string[];
-        const updated = unsavedSlugs.filter((s) => s !== normalizedNotebook.slug);
+        const updated = unsavedSlugs.filter(
+          (s) => s !== normalizedNotebook.slug,
+        );
         localStorage.setItem(storageKey, JSON.stringify(updated));
         setHasUnsavedChangesState(false);
       } catch (error) {
         console.error('Failed to clear unsaved state:', error);
       }
     }
-    
+
     setShowUnsavedDialog(false);
     if (pendingNavigation) {
       pendingNavigation();
@@ -774,13 +781,16 @@ export default function NotebookPage() {
     // Only reset state when updatedAt actually changes (meaning a save happened)
     const currentUpdatedAt = normalizedNotebook.updatedAt;
     const previousUpdatedAt = previousUpdatedAtRef.current;
-    
+
     // Check if this is a new save (updatedAt changed)
-    const isNewSave = previousUpdatedAt !== undefined && 
-      previousUpdatedAt !== currentUpdatedAt;
+    const isNewSave =
+      previousUpdatedAt !== undefined && previousUpdatedAt !== currentUpdatedAt;
 
     // Initialize saved state when notebook loads or when a new save happens
-    if (normalizedNotebook.cells && (previousUpdatedAt === undefined || isNewSave)) {
+    if (
+      normalizedNotebook.cells &&
+      (previousUpdatedAt === undefined || isNewSave)
+    ) {
       const savedState = {
         cells: normalizedNotebook.cells.map((cell) => ({
           query: cell.query ?? '',
@@ -793,7 +803,7 @@ export default function NotebookPage() {
         title: normalizedNotebook.title,
       };
       lastSavedStateRef.current = savedState;
-      
+
       // Only reset current state if this is a new save (not on initial load with existing unsaved changes)
       if (isNewSave) {
         // This is a save - reset current state to match saved state
@@ -826,10 +836,15 @@ export default function NotebookPage() {
           setHasUnsavedChangesState(false);
         }
       }
-      
+
       previousUpdatedAtRef.current = currentUpdatedAt;
     }
-  }, [normalizedNotebook?.updatedAt, normalizedNotebook?.cells, normalizedNotebook?.title, normalizedNotebook?.slug]);
+  }, [
+    normalizedNotebook?.updatedAt,
+    normalizedNotebook?.cells,
+    normalizedNotebook?.title,
+    normalizedNotebook?.slug,
+  ]);
 
   // Register SQL paste handler for chat interface
   useEffect(() => {
@@ -1032,20 +1047,15 @@ export default function NotebookPage() {
           <DialogHeader>
             <DialogTitle>Unsaved Changes</DialogTitle>
             <DialogDescription>
-              You have unsaved changes in this notebook. What would you like to do?
+              You have unsaved changes in this notebook. What would you like to
+              do?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={handleCancelNavigation}
-            >
+            <Button variant="outline" onClick={handleCancelNavigation}>
               Cancel
             </Button>
-            <Button
-              variant="outline"
-              onClick={handleDiscardAndContinue}
-            >
+            <Button variant="outline" onClick={handleDiscardAndContinue}>
               Discard Changes
             </Button>
             <Button

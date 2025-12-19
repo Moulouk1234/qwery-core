@@ -65,7 +65,12 @@ export function NotebookCellAiPopup({
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const dragStartPos = useRef<{ x: number; y: number } | null>(null);
-  const resizeStartPos = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
+  const resizeStartPos = useRef<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
   const shortcutEnabled = enableShortcut && isQueryCell;
 
@@ -162,13 +167,20 @@ export function NotebookCellAiPopup({
       '.cm-editor',
     ) as HTMLElement | null;
     if (!cmEditor) {
-    const containerWidth = editorContainerRef.current.clientWidth;
-    const calculatedWidth = Math.min(containerWidth - 32, 400);
-    const calculatedHeight = 160;
-    setTimeout(
-      () => setPopupPosition({ top: 40, left: 16, width: calculatedWidth, height: calculatedHeight, placement: 'below' }),
-      0,
-    );
+      const containerWidth = editorContainerRef.current.clientWidth;
+      const calculatedWidth = Math.min(containerWidth - 32, 400);
+      const calculatedHeight = 160;
+      setTimeout(
+        () =>
+          setPopupPosition({
+            top: 40,
+            left: 16,
+            width: calculatedWidth,
+            height: calculatedHeight,
+            placement: 'below',
+          }),
+        0,
+      );
       return;
     }
 
@@ -179,7 +191,9 @@ export function NotebookCellAiPopup({
     ) as HTMLElement | null;
     const cursor = cmEditor.querySelector('.cm-cursor') as HTMLElement | null;
     const lineElement =
-      firstLine || activeLine || (cursor?.closest('.cm-line') as HTMLElement | null);
+      firstLine ||
+      activeLine ||
+      (cursor?.closest('.cm-line') as HTMLElement | null);
 
     if (!lineElement) {
       // Use setTimeout to avoid synchronous setState in effect
@@ -187,7 +201,14 @@ export function NotebookCellAiPopup({
       const calculatedWidth = Math.min(containerWidth - 32, 400);
       const calculatedHeight = 160;
       setTimeout(
-        () => setPopupPosition({ top: 4, left: 16, width: calculatedWidth, height: calculatedHeight, placement: 'below' }),
+        () =>
+          setPopupPosition({
+            top: 4,
+            left: 16,
+            width: calculatedWidth,
+            height: calculatedHeight,
+            placement: 'below',
+          }),
         0,
       );
       return;
@@ -262,7 +283,12 @@ export function NotebookCellAiPopup({
 
   // Drag functionality
   useEffect(() => {
-    if (!isDragging || !popupPosition || !editorContainerRef.current || !popupRef.current) {
+    if (
+      !isDragging ||
+      !popupPosition ||
+      !editorContainerRef.current ||
+      !popupRef.current
+    ) {
       return;
     }
 
@@ -313,7 +339,12 @@ export function NotebookCellAiPopup({
 
   // Resize functionality
   useEffect(() => {
-    if (!isResizing || !popupPosition || !editorContainerRef.current || !popupRef.current) {
+    if (
+      !isResizing ||
+      !popupPosition ||
+      !editorContainerRef.current ||
+      !popupRef.current
+    ) {
       return;
     }
 
@@ -365,7 +396,10 @@ export function NotebookCellAiPopup({
   }
 
   const handleDragStart = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget || (e.target as HTMLElement).closest('[data-drag-handle]')) {
+    if (
+      e.target === e.currentTarget ||
+      (e.target as HTMLElement).closest('[data-drag-handle]')
+    ) {
       setIsDragging(true);
       dragStartPos.current = { x: e.clientX, y: e.clientY };
       e.preventDefault();
@@ -409,13 +443,13 @@ export function NotebookCellAiPopup({
       {/* Drag handle */}
       <div
         data-drag-handle
-        className="border-border flex h-6 cursor-grab items-center justify-center border-b bg-muted/30 hover:bg-muted/50"
+        className="border-border bg-muted/30 hover:bg-muted/50 flex h-6 cursor-grab items-center justify-center border-b"
         onMouseDown={(e) => {
           e.stopPropagation();
           handleDragStart(e);
         }}
       >
-        <GripVertical className="h-3 w-3 text-muted-foreground" />
+        <GripVertical className="text-muted-foreground h-3 w-3" />
       </div>
       <form
         onSubmit={(e) => {
@@ -454,7 +488,7 @@ export function NotebookCellAiPopup({
             }
           }}
           placeholder="Ask the AI agent anything about this cell..."
-          className="border-border bg-background/95 [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-thumb]:hover:bg-muted-foreground/50 relative flex-1 w-full resize-none overflow-y-auto rounded-lg border-0 text-sm shadow-inner focus-visible:ring-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent"
+          className="border-border bg-background/95 [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-thumb]:hover:bg-muted-foreground/50 relative w-full flex-1 resize-none overflow-y-auto rounded-lg border-0 text-sm shadow-inner focus-visible:ring-0 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent"
           autoFocus
           disabled={isLoading}
         />
@@ -484,7 +518,7 @@ export function NotebookCellAiPopup({
       </form>
       {/* Resize handle */}
       <div
-        className="absolute bottom-0 right-0 h-4 w-4 cursor-nwse-resize bg-border/50 hover:bg-border"
+        className="bg-border/50 hover:bg-border absolute right-0 bottom-0 h-4 w-4 cursor-nwse-resize"
         onMouseDown={handleResizeStart}
         style={{
           clipPath: 'polygon(100% 0, 0 100%, 100% 100%)',
