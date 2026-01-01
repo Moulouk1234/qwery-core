@@ -3,6 +3,7 @@ export * from './domain';
 export * from './ports';
 export * from './services';
 export * from './agents';
+export { lmStudioProvider } from './providers/lm-studio';
 
 // Export tool types
 export * from './agents/tools/types';

@@ -41,9 +41,9 @@ const ALLOWED_HOSTS =
 export default defineConfig(({ command }) => ({
   ssr: {
     noExternal:
-      command === 'build'
-        ? true
-        : ['posthog-js', '@posthog/react', 'streamdown'],
+    command === 'build'
+      ? true
+      : ['posthog-js', '@posthog/react', 'streamdown', '@qwery/extension-*'],
     external: [
       'better-sqlite3',
       '@duckdb/node-api',
@@ -89,13 +89,15 @@ export default defineConfig(({ command }) => ({
     },
   },
   optimizeDeps: {
-    exclude: [
-      'fsevents',
-      '@electric-sql/pglite',
-      '@duckdb/node-api',
-      '@duckdb/duckdb-wasm',
-      '@qwery/agent-factory-sdk',
-    ],
+      exclude: [
+    'fsevents',
+    '@electric-sql/pglite',
+    '@duckdb/node-api',
+    '@duckdb/duckdb-wasm',
+    '@qwery/agent-factory-sdk',
+    '@qwery/extension-*', 
+    '@qwery/extension-clickhouse-node',
+  ],
     entries: [
       './app/root.tsx',
       './app/entry.server.tsx',
